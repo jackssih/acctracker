@@ -6,6 +6,9 @@ import pandas as pd
 from choir_logic import load_full_dataset
 from streamlit_option_menu import option_menu
 from database import connect_db
+from user_management import render_user_management
+def is_admin():
+    return st.session_state.get("role") == "admin"
 
 def refresh_data():
     st.session_state.edited_df = load_full_dataset()
@@ -172,98 +175,118 @@ if st.session_state.search_menu_tracker != menu:
             del st.session_state[key]
     st.rerun()
 # ---------------- GLOBAL SEARCH BAR ----------------
-data = load_full_dataset()
+# ---------------- SEARCH ONLY ON DASHBOARD ----------------
+if menu == "Dashboard":
+    data = load_full_dataset()
+    st.session_state.edited_df = data
 
+    # ── SEARCH + SORT ROW ──
+    space, search_col, sort_col = st.columns([2,1.5, 1])
 
-search_col1, search_col2, search_col3, search_col4, search_col5 = st.columns([3, 0.5, 1, 1, 1])
+    with search_col:
+        left, right = st.columns([6, 0.8])
+        with left:
+            search_query = st.text_input(
+                "search",
+                placeholder="  Search student by name or ID...",
+                label_visibility="collapsed"
+            )
+        with right:
+            search_clicked = st.button("⌕", use_container_width=True)
 
-with search_col1:
-    search_query = st.text_input(
-        "Search by name or ID",
-        placeholder="Search...",
-        key="global_search",
-        label_visibility="collapsed"
-    )
+    with sort_col:
+        sort_options = (
+            ["All students"]
+            + [f"Choir · {c}" for c in sorted(data["choir"].dropna().unique().tolist())]
+            + ["Gender · Male", "Gender · Female"]
+            + ["Status · Graduated", "Status · Not Graduated", "Status · Deceased"]
+        )
+        sort_by = st.selectbox(
+            "Sort by",
+            sort_options,
+            key="dashboard_sort"
+        )
+    with space:
+        st.markdown("**Dashboard**")
+    # ── SEARCH LOGIC ──
+    if search_clicked:
+        results = data.copy()
 
-with search_col2:
-    search_clicked = st.button("⌕", key="global_search_btn", use_container_width=True)
+        if search_query:
+            results = results[
+                results["name"].fillna("").str.contains(search_query, case=False) |
+                results["identification_no"].astype(str).str.contains(search_query, case=False)
+            ]
 
-with search_col3:
-    choir_filter = st.selectbox(
-        "Choir",
-        ["All Choirs"] + sorted(data["choir"].dropna().unique().tolist()),
-        key="global_choir_filter"
-    )
+        # apply sort_by filter on top of search
+        if sort_by != "All students":
+            if sort_by.startswith("Choir · "):
+                choir_val = sort_by.replace("Choir · ", "")
+                results = results[results["choir"] == choir_val]
+            elif sort_by == "Gender · Male":
+                results = results[results["gender"] == "M"]
+            elif sort_by == "Gender · Female":
+                results = results[results["gender"] == "F"]
+            elif sort_by == "Status · Graduated":
+                results = results[results["graduated"] == True]
+            elif sort_by == "Status · Not Graduated":
+                results = results[results["graduated"] == False]
+            elif sort_by == "Status · Deceased":
+                results = results[results["status"] == "deceased"]
 
-with search_col4:
-    gender_filter = st.selectbox(
-        "Gender",
-        ["All", "M", "F"],
-        key="global_gender_filter"
-    )
-
-with search_col5:
-    status_filter = st.selectbox(
-        "Status",
-        ["All", "Graduated", "Not Graduated", "Deceased"],
-        key="global_status_filter"
-    )
-
-# ---------------- SEARCH ACTIVE FLAG ----------------
-is_searching = search_clicked and (
-    search_query or
-    choir_filter != "All Choirs" or
-    gender_filter != "All" or
-    status_filter != "All"
-)
-
-if is_searching:
-    results = data.copy()
-
-    if search_query:
-        results = results[
-            results["name"].fillna("").str.contains(search_query, case=False) |
-            results["identification_no"].astype(str).str.contains(search_query, case=False)
-        ]
-
-    if choir_filter != "All Choirs":
-        results = results[results["choir"] == choir_filter]
-
-    if gender_filter != "All":
-        results = results[results["gender"] == gender_filter]
-
-    if status_filter == "Graduated":
-        results = results[results["graduated"] == True]
-    elif status_filter == "Not Graduated":
-        results = results[results["graduated"] == False]
-    elif status_filter == "Deceased":
-        results = results[results["status"] == "deceased"]
-
-    # ---------------- FULL PAGE TAKEOVER ----------------
-    st.markdown("---")
-    st.markdown(f"### 📋 Results &nbsp;&nbsp; <span style='font-size:0.9rem; color:gray;'>{len(results)} student(s) found</span>", unsafe_allow_html=True)
-
-    display_cols = [c for c in [
-        "name", "choir", "gender", "status",
-        "institute", "course_name", "year_of_graduation"
-    ] if c in results.columns]
-
-    if results.empty:
-        st.warning("No students match your search.")
-    else:
-        st.dataframe(
-            results[display_cols],
-            use_container_width=True,
-            height=500  # tall table to fill the page
+        st.session_state.global_results = results
+        st.session_state.global_result_label = (
+            f"{len(results)} result(s)"
+            + (f" · {search_query}" if search_query else "")
+            + (f" · {sort_by}" if sort_by != "All students" else "")
         )
 
-        csv = results.to_csv(index=False).encode("utf-8")
-        
+    # ── SHOW RESULTS ──
+    if "global_results" not in st.session_state:
+        st.session_state.global_results = None
 
-    # ---- STOP rendering the rest of the page ----
-    st.stop()
+    if st.session_state.global_results is not None:
+        results = st.session_state.global_results
+        label = st.session_state.get("global_result_label", "")
 
-st.divider()  # clean separator before page content when not searching
+        r_col, c_col = st.columns([5, 1])
+        with r_col:
+            st.markdown(f"""
+            <div style="display:flex; align-items:center; gap:8px;
+                        background:#FFFFFF; border:0.5px solid #E0E0D8;
+                        border-radius:10px; padding:9px 14px; margin:8px 0;">
+                <span style="background:#E1F5EE; color:#0F6E56; font-size:12px;
+                             font-weight:500; padding:2px 10px; border-radius:20px;">
+                    {len(results)}
+                </span>
+                <span style="font-size:12px; color:#888780;">{label}</span>
+            </div>
+            """, unsafe_allow_html=True)
+        with c_col:
+            if st.button("✕ Clear", use_container_width=True, key="clear_search"):
+                st.session_state.global_results = None
+                st.session_state.global_result_label = ""
+                st.rerun()
+
+        display_cols = [c for c in [
+            "name", "choir", "gender", "status",
+            "institute", "course_name", "year_of_graduation"
+        ] if c in results.columns]
+
+        if results.empty:
+            st.warning("No students match your search.")
+        else:
+            st.dataframe(results[display_cols], use_container_width=True, height=500)
+            csv = results.to_csv(index=False).encode("utf-8")
+            st.download_button(
+                "⬇ Download results", csv,
+                "search_results.csv", "text/csv",
+                key="download_search_results"
+            )
+
+        st.stop()
+
+    st.divider()
 
 
 # ---------------- DASHBOARD ----------------
@@ -365,7 +388,7 @@ if menu == "Dashboard":
 
     # ---------------- FILTER LOGIC ----------------
     filtered = None
-
+    
     if st.session_state.dashboard_view == "all":
         filtered = data[[
             'identification_no',
@@ -374,7 +397,15 @@ if menu == "Dashboard":
             "gender",
             "status"
         ]]
-
+    # right after st.data_editor(filtered, ...)
+        csv = filtered.to_csv(index=False).encode("utf-8")
+        st.download_button(
+            "Download",
+            csv,
+            "students.csv",
+            "text/csv",
+            key=f"download_{st.session_state.dashboard_view}"
+        )
     elif st.session_state.dashboard_view == "graduated":
         filtered = data[data["graduated"] == True][[
             "name",
@@ -385,6 +416,14 @@ if menu == "Dashboard":
             "course_name",
             "year_of_graduation"
         ]]
+        csv = filtered.to_csv(index=False).encode("utf-8")
+        st.download_button(
+            "Download",
+            csv,
+            "students.csv",
+            "text/csv",
+            key=f"download_{st.session_state.dashboard_view}"
+        )
     elif st.session_state.dashboard_view == "not_graduated":
         filtered = data[data["graduated"] == False].copy()
         # remove ID columns
@@ -396,13 +435,21 @@ if menu == "Dashboard":
             "status",
             
         ]
-
+        csv = filtered.to_csv(index=False).encode("utf-8")
+        st.download_button(
+            "Download",
+            csv,
+            "students.csv",
+            "text/csv",
+            key=f"download_{st.session_state.dashboard_view}"
+        )
         # keep only existing ones
         display_cols = [c for c in display_cols if c in filtered.columns]
 
         filtered = filtered[display_cols]
         filtered["mark_graduated"] = False
         edited = st.data_editor(filtered, use_container_width=True)
+        
         for idx, row in edited.iterrows():
             if row.get("mark_graduated") == True:
 
@@ -417,7 +464,9 @@ if menu == "Dashboard":
                     submit = st.form_submit_button("Save Graduation")
 
                     if submit:
-                        if not institute or not course or not year:
+                        if not is_admin():
+                           st.error("You don't have permission to save changes.")
+                        elif not institute or not course or not year:
                             st.error("All fields required")
                         else:
                             conn = connect_db()
@@ -439,7 +488,14 @@ if menu == "Dashboard":
 
     elif st.session_state.dashboard_view == "deceased":
         filtered = data[data["status"] == "deceased"].copy()
-
+        csv = filtered.to_csv(index=False).encode("utf-8")
+        st.download_button(
+            "Download",
+            csv,
+            "students.csv",
+            "text/csv",
+            key=f"download_{st.session_state.dashboard_view}"
+        )
     # keep only required columns
         display_cols = ["name", "choir", "gender", "comment"]
 
@@ -448,11 +504,12 @@ if menu == "Dashboard":
                 filtered[col] = ""
 
         filtered = filtered[display_cols]
-
+    
         edited_deceased = st.data_editor(
             filtered,
             use_container_width=True,
             key="deceased_editor",
+            disabled=not is_admin(),
             column_config={
                 "comment": st.column_config.TextColumn("Comment")
             }
@@ -460,15 +517,18 @@ if menu == "Dashboard":
 
         # persist changes back to session state
         for idx, row in edited_deceased.iterrows():
-            st.session_state.edited_df.loc[idx, "comment"] = row["comment"]
+            if "comment" in row.index:
+                st.session_state.edited_df.loc[idx, "comment"] = row["comment"]
     # ---------------- ONLY SHOW TABLE IF EXISTS ----------------
     if filtered is not None and st.session_state.dashboard_view != "not_graduated":
      if filtered is not None and st.session_state.dashboard_view != "deceased":
         display_df = filtered.drop(columns=["identification_no"], errors="ignore")
+    
         edited_filtered = st.data_editor(
             filtered,
             use_container_width=True,
             key=f"editor_{st.session_state.dashboard_view}",  # UNIQUE KEY FIX
+            disabled=not is_admin(),
             column_config={
                 "status": st.column_config.SelectboxColumn(
                     "Status",
@@ -484,7 +544,8 @@ if menu == "Dashboard":
                 st.session_state.edited_df.loc[idx, col] = edited_filtered.loc[idx, col]
 
     # ---------------- SAVE ----------------
-    if st.button(" Save Changes"):
+    
+    if is_admin() and st.button(" Save Changes"):
 
         conn = connect_db()
 
@@ -691,167 +752,503 @@ if menu == "Dashboard":
             <tbody>{rows_html}</tbody>
         </table>
         </div>
-        """, unsafe_allow_html=True)                       
-# ---------------- UPLOAD ----------------
-if st.session_state.get("deleted_count"):
-
-    st.success(
-        f"Deleted {st.session_state.deleted_count} record(s) "
-        f"for '{st.session_state.deleted_name}' "
+        """, unsafe_allow_html=True)
+    csv_recent = recent_display.to_csv(index=False).encode("utf-8")
+    st.download_button(
+        "Download recent graduates",
+        csv_recent,
+        "recent_graduates.csv",
+        "text/csv",
+        key="download_recent"
     )
-
-    st.toast(" Student(s) removed successfully", icon="⚠️")
-
-    # clear after showing once
-    st.session_state.deleted_count = None
-    st.session_state.deleted_name = None
-if st.session_state.get("student_added"):
-    st.success("Student has been added successfully ")
-    st.info("Check the Dashboard for updated figures")
-    st.toast("🎉 New student added successfully!")
-
-    # clear after showing once
-    st.session_state.student_added = False
+                        
+# ---------------- UPLOAD ----------------
 elif menu == "Manage Data":
-    col_left, col_main = st.columns([1, 3])
-    with col_left:
-        st.subheader("Download Templates")
+    if not is_admin():
+        st.markdown("""
+        <div style="background:#FAEEDA; border:0.5px solid #EF9F27; border-radius:10px;
+                    padding:14px 16px; display:flex; align-items:center; gap:10px;
+                    font-size:13px; color:#854F0B;">
+            <i class="ti ti-lock" style="font-size:18px;"></i>
+            You have view-only access. Contact an admin to make changes.
+        </div>
+        """, unsafe_allow_html=True)
+        st.stop()
 
-        choir_template = pd.DataFrame(columns=[
-            "name",
-            "choir",
-            "gender",
-            "status"
-        ])
+    st.markdown("**Manage Data**")
+    st.caption("Upload, add and remove student records")
+    st.markdown("---")
 
+    # ── ROW 1: TEMPLATES + UPLOAD ──
+    tmpl_col, upload_col = st.columns(2)
+
+    with tmpl_col:
+        st.markdown("""
+        <div style="background:#FFFFFF; border:0.5px solid #E0E0D8; border-radius:12px;
+                    padding:16px 18px;">
+            <div style="font-size:13px; font-weight:500; color:#1a1a1a;
+                        display:flex; align-items:center; gap:7px; margin-bottom:14px;">
+                <i class="ti ti-file-download" style="font-size:16px; color:#1D9E75;"></i>
+                Download templates
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        choir_template = pd.DataFrame(columns=["name", "choir", "gender", "status"])
         st.download_button(
-            "Choir Template",
+            "🎵  Choir data template",
             choir_template.to_csv(index=False),
             "choir_template.csv",
-            "text/csv"
+            "text/csv",
+            use_container_width=True,
+            key="dl_choir_template"
         )
-        grad_template = pd.DataFrame(columns=[
-            "name",
-            "institute",
-            "course_name",
-            'duration',
-            "year_of_graduation"
-        ])
 
+        grad_template = pd.DataFrame(columns=[
+            "identification_no", "name", "institute",
+            "course_name", "duration", "year_of_graduation"
+        ])
         st.download_button(
-            "Graduation Template",
+            "🎓  Graduation data template",
             grad_template.to_csv(index=False),
             "graduation_template.csv",
-            "text/csv"
+            "text/csv",
+            use_container_width=True,
+            key="dl_grad_template"
         )
-        st.subheader("Bulk Upload")
 
-        choir_file = st.file_uploader("Upload Choir Data", type=["csv", "xlsx"])
-        grad_file = st.file_uploader("Upload Graduation Data", type=["csv", "xlsx"])
+        st.markdown("""
+        <div style="background:#E6F1FB; border-left:3px solid #378ADD;
+                    border-radius:0 8px 8px 0; padding:8px 12px;
+                    font-size:11px; color:#1A5FA8; margin-top:8px;">
+            Download a template first, fill it in, then upload it.
+            Column names must match exactly.
+        </div>
+        """, unsafe_allow_html=True)
 
+    with upload_col:
+        st.markdown("""
+        <div style="background:#FFFFFF; border:0.5px solid #E0E0D8; border-radius:12px;
+                    padding:16px 18px 4px;">
+            <div style="font-size:13px; font-weight:500; color:#1a1a1a;
+                        display:flex; align-items:center; gap:7px; margin-bottom:14px;">
+                <i class="ti ti-cloud-upload" style="font-size:16px; color:#1D9E75;"></i>
+                Bulk upload
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        choir_file = st.file_uploader(
+            "🎵 Upload choir data",
+            type=["csv", "xlsx"],
+            key="choir_upload"
+        )
         if choir_file:
             upload_choir_data(choir_file)
-            st.success("Choir uploaded")
+            st.success("Choir data uploaded successfully")
+            st.session_state.edited_df = load_full_dataset()
             st.rerun()
 
+        grad_file = st.file_uploader(
+            "🎓 Upload graduation data",
+            type=["csv", "xlsx"],
+            key="grad_upload"
+        )
         if grad_file:
             upload_graduation_data(grad_file)
             st.session_state.edited_df = load_full_dataset()
-
-            st.success("Graduation data uploaded")
-            st.info("Dashboard updated")
-
+            st.success("Graduation data uploaded successfully")
             st.rerun()
-            
-    with col_main:
-        st.subheader("Add New Student")
+
+    st.markdown("<div style='margin-top:6px'></div>", unsafe_allow_html=True)
+
+    # ── ROW 2: ADD + DELETE ──
+    add_col, del_col = st.columns(2)
+
+    with add_col:
+        st.markdown("""
+        <div style="background:#FFFFFF; border:0.5px solid #E0E0D8; border-radius:12px;
+                    padding:16px 18px 4px;">
+            <div style="font-size:13px; font-weight:500; color:#1a1a1a;
+                        display:flex; align-items:center; gap:7px; margin-bottom:14px;">
+                <i class="ti ti-user-plus" style="font-size:16px; color:#1D9E75;"></i>
+                Add new student
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
         with st.form("add_student"):
+            name = st.text_input("Full name", placeholder="e.g. Sarah Nalwoga")
+            choir = st.text_input("Choir", placeholder="e.g. Choir 32")
+            g_col, s_col = st.columns(2)
+            with g_col:
+                gender = st.selectbox("Gender", ["M", "F"])
+            with s_col:
+                status = st.selectbox("Status", ["alive", "deceased"])
 
-            name = st.text_input("Full Name")
-            choir = st.text_input("Choir")
-            gender = st.selectbox("Gender", ["M", "F"])
-            status = st.selectbox("Status", ["alive", "deceased"])
-         
-            submit = st.form_submit_button("Add Student")
-        
-            if submit:
-
-                from services import generate_id
-                student_id = generate_id()
-
-                conn = connect_db()
-                conn.execute("""
-                    INSERT INTO choir_data 
-                    (identification_no, name, choir, gender, status)
-                    VALUES (?, ?, ?, ?, ?)
-                """, (
-                    student_id,
-                    name,
-                    choir,
-                    gender,
-                    status
-                ))
-                conn.commit()
-                conn.close()
-
-                # ✅ STORE MESSAGE
-                st.session_state.student_added = True
-
-                st.rerun()
-                
-        st.subheader(" Delete Student ")
-
-        name_to_delete = st.text_input("Enter Student Name")
-
-        confirm = st.checkbox("Confirm delete")
-
-        if st.button("Delete Student") and confirm:
-
-            conn = connect_db()
-
-            matches = pd.read_sql(
-                "SELECT identification_no FROM choir_data WHERE name = ?",
-                conn,
-                params=(name_to_delete,)
+            submit = st.form_submit_button(
+                "Add student", use_container_width=True
             )
 
-            if matches.empty:
-                st.error("No student found with that name")
-                conn.close()
+            if submit:
+                if not name or not choir:
+                    st.error("Name and choir are required")
+                else:
+                    from services import generate_id
+                    student_id = generate_id()
+                    conn = connect_db()
+                    conn.execute("""
+                        INSERT INTO choir_data
+                        (identification_no, name, choir, gender, status)
+                        VALUES (?, ?, ?, ?, ?)
+                    """, (student_id, name, choir, gender, status))
+                    conn.commit()
+                    conn.close()
+                    st.session_state.student_added = True
+                    st.rerun()
 
-            else:
-                ids = matches["identification_no"].tolist()
+    with del_col:
+        st.markdown("""
+        <div style="background:#FFFFFF; border:0.5px solid #E0E0D8; border-radius:12px;
+                    padding:16px 18px 4px;">
+            <div style="font-size:13px; font-weight:500; color:#1a1a1a;
+                        display:flex; align-items:center; gap:7px; margin-bottom:14px;">
+                <i class="ti ti-user-minus" style="font-size:16px; color:#E24B4A;"></i>
+                Remove student
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
-                # delete from choir
-                conn.executemany(
-                    "DELETE FROM choir_data WHERE identification_no = ?",
-                    [(i,) for i in ids]
-                )
+        with st.form("delete_student"):
+            name_to_delete = st.text_input(
+                "Student name",
+                placeholder="Enter exact name to remove..."
+            )
 
-                # delete from graduation
-                conn.executemany(
-                    "DELETE FROM graduation_data WHERE identification_no = ?",
-                    [(i,) for i in ids]
-                )
+            st.markdown("""
+            <div style="background:#FAEEDA; border:0.5px solid #EF9F27; border-radius:8px;
+                        padding:8px 12px; font-size:11px; color:#854F0B;
+                        display:flex; align-items:center; gap:7px; margin:6px 0 10px;">
+                <i class="ti ti-alert-triangle" style="font-size:14px; flex-shrink:0;"></i>
+                This will permanently delete the student and all their graduation records.
+            </div>
+            """, unsafe_allow_html=True)
 
-                conn.commit()
-                conn.close()
+            confirm = st.checkbox(
+                "I confirm I want to permanently remove this student"
+            )
 
-                # ✅ STORE MESSAGE BEFORE RERUN
-                st.session_state.deleted_count = len(ids)
-                st.session_state.deleted_name = name_to_delete
+            delete_submit = st.form_submit_button(
+                "Remove student", use_container_width=True
+            )
 
-                st.rerun()
+            if delete_submit:
+                if not name_to_delete:
+                    st.error("Please enter a student name")
+                elif not confirm:
+                    st.error("Please check the confirmation box")
+                else:
+                    conn = connect_db()
+                    matches = pd.read_sql(
+                        "SELECT identification_no FROM choir_data WHERE name = ?",
+                        conn,
+                        params=(name_to_delete,)
+                    )
+                    if matches.empty:
+                        st.error(f"No student found with name '{name_to_delete}'")
+                        conn.close()
+                    else:
+                        ids = matches["identification_no"].tolist()
+                        conn.executemany(
+                            "DELETE FROM choir_data WHERE identification_no = ?",
+                            [(i,) for i in ids]
+                        )
+                        conn.executemany(
+                            "DELETE FROM graduation_data WHERE identification_no = ?",
+                            [(i,) for i in ids]
+                        )
+                        conn.commit()
+                        conn.close()
+                        st.session_state.deleted_count = len(ids)
+                        st.session_state.deleted_name = name_to_delete
+                        st.rerun()
+
+    # ── SUCCESS / DELETE TOASTS ──
+    if st.session_state.get("deleted_count"):
+        st.success(
+            f"Removed {st.session_state.deleted_count} record(s) "
+            f"for '{st.session_state.deleted_name}'"
+        )
+        st.toast("Student removed successfully", icon="⚠️")
+        st.session_state.deleted_count = None
+        st.session_state.deleted_name = None
+
+    if st.session_state.get("student_added"):
+        st.success("Student added successfully")
+        st.toast("🎉 New student added!")
+        st.session_state.student_added = False
 
 # ---------------- ANALYTICS ----------------
 elif menu == "Analytics":
-    st.title("Choir Analytics")
-
     data = st.session_state.edited_df.copy()
 
-    choir_stats = data.groupby("choir").agg({
-        "graduated": ["count", "sum"]
-    })
+    st.markdown("**Analytics**")
+    st.caption("Graduation insights across all choirs")
+    st.markdown("---")
 
-    st.dataframe(choir_stats)
+    # ── DERIVED STATS ──
+    total = data["identification_no"].nunique()
+    graduated = data[data["graduated"] == True]["identification_no"].nunique()
+    deceased = int((data["status"] == "deceased").sum())
+    grad_rate = round((graduated / total * 100), 1) if total > 0 else 0
+
+    choir_stats = data.groupby("choir").agg(
+        total=("identification_no", "count"),
+        graduated=("graduated", "sum"),
+        deceased=("status", lambda x: (x == "deceased").sum())
+    ).reset_index()
+    choir_stats["pending"] = choir_stats["total"] - choir_stats["graduated"] - choir_stats["deceased"]
+    choir_stats["rate"] = (choir_stats["graduated"] / choir_stats["total"] * 100).round(1)
+    choir_stats = choir_stats.sort_values("rate", ascending=False)
+
+    top_choir = choir_stats.iloc[0]["choir"] if not choir_stats.empty else "—"
+    top_rate = choir_stats.iloc[0]["rate"] if not choir_stats.empty else 0
+
+    grad_by_year = (
+        data[data["graduated"] == True]
+        .groupby("year_of_graduation")
+        .size()
+        .reset_index(name="Graduates")
+        .sort_values("year_of_graduation")
+    )
+    grad_by_year["Year"] = grad_by_year["year_of_graduation"].astype(int).astype(str)
+
+    male = int((data["gender"] == "M").sum())
+    female = int((data["gender"] == "F").sum())
+
+    # ── STAT CARDS ──
+    c1, c2, c3 = st.columns(3)
+
+    with c1:
+        st.markdown(f"""
+        <div style="background:#FFFFFF; border:0.5px solid #E0E0D8; border-radius:12px;
+                    padding:14px 16px; display:flex; align-items:center; gap:12px;">
+            <div style="width:36px; height:36px; border-radius:9px; background:#E1F5EE;
+                        display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                <i class="ti ti-chart-pie" style="font-size:18px; color:#1D9E75;"></i>
+            </div>
+            <div>
+                <div style="font-size:11px; color:#888780; margin-bottom:3px;">Graduation rate</div>
+                <div style="font-size:22px; font-weight:500; color:#1a1a1a;">{grad_rate}%</div>
+                <div style="font-size:11px; color:#1D9E75;">{graduated} of {total} students</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with c2:
+        st.markdown(f"""
+        <div style="background:#FFFFFF; border:0.5px solid #E0E0D8; border-radius:12px;
+                    padding:14px 16px; display:flex; align-items:center; gap:12px;">
+            <div style="width:36px; height:36px; border-radius:9px; background:#FAEEDA;
+                        display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                <i class="ti ti-venus-mars" style="font-size:18px; color:#EF9F27;"></i>
+            </div>
+            <div>
+                <div style="font-size:11px; color:#888780; margin-bottom:3px;">Gender split</div>
+                <div style="font-size:22px; font-weight:500; color:#1a1a1a;">{male}M · {female}F</div>
+                <div style="font-size:11px; color:#888780;">
+                    {round(male/total*100)}% male · {round(female/total*100)}% female
+                </div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with c3:
+        st.markdown(f"""
+            <div style="background:#FFFFFF; border:0.5px solid #E0E0D8; border-radius:12px;
+                        padding:14px 16px; display:flex; align-items:center; gap:12px;">
+                <div style="width:36px; height:36px; border-radius:9px; background:#E6F1FB;
+                            display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                    <i class="ti ti-trophy" style="font-size:18px; color:#378ADD;"></i>
+                </div>
+                <div>
+                    <div style="font-size:11px; color:#888780; margin-bottom:3px;">Top choir</div>
+                    <div style="font-size:18px; font-weight:500; color:#1a1a1a;">{top_choir}</div>
+                    <div style="font-size:11px; color:#888780;">{top_rate}% graduation rate</div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+    st.markdown("<div style='margin-top:10px'></div>", unsafe_allow_html=True)
+
+    # ── CHARTS ROW ──
+    chart_col, gender_col = st.columns([2, 1])
+
+    with chart_col:
+        st.markdown("**📊 Graduation rate by choir**")
+        import altair as alt
+
+        choir_chart = alt.Chart(choir_stats).mark_bar(
+            cornerRadiusTopLeft=4,
+            cornerRadiusTopRight=4,
+        ).encode(
+            x=alt.X("choir:N", sort="-y", axis=alt.Axis(
+                labelColor="#B4B2A9", tickColor="#E0E0D8",
+                domainColor="#E0E0D8", labelFontSize=11, title=None
+            )),
+            y=alt.Y("rate:Q", axis=alt.Axis(
+                labelColor="#B4B2A9", gridColor="#F1EFE8",
+                domainOpacity=0, tickOpacity=0,
+                labelFontSize=11, title=None
+            ), scale=alt.Scale(domain=[0, 100])),
+            color=alt.condition(
+                alt.datum.rate >= 60,
+                alt.value("#1D9E75"),
+                alt.value("#B4B2A9")
+            ),
+            tooltip=["choir", "rate", "graduated", "total"]
+        ).properties(
+            height=180, background="transparent"
+        ).configure_view(strokeOpacity=0)
+
+        st.altair_chart(choir_chart, use_container_width=True)
+
+    with gender_col:
+        st.markdown("**👥 Gender breakdown**")
+
+        total_safe = total if total > 0 else 1
+        male_pct = round(male / total_safe * 100)
+        female_pct = round(female / total_safe * 100)
+        deceased_pct = round(deceased / total_safe * 100)
+
+        for label, value, pct, color in [
+            ("Male", male, male_pct, "#1D9E75"),
+            ("Female", female, female_pct, "#9FE1CB"),
+            ("Deceased", deceased, deceased_pct, "#E0E0D8"),
+        ]:
+            st.markdown(f"""
+            <div style="margin-bottom:12px;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                    <span style="font-size:12px; font-weight:500; color:#1a1a1a;">{label}</span>
+                    <span style="font-size:11px; color:#888780;">{value} · {pct}%</span>
+                </div>
+                <div style="height:8px; background:#F1EFE8; border-radius:4px; overflow:hidden;">
+                    <div style="height:100%; width:{pct}%; background:{color}; border-radius:4px;"></div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+    st.markdown("---")
+
+    # ── YEARLY TREND ──
+    st.markdown("**📈 Graduation trend by year**")
+
+    if not grad_by_year.empty:
+        max_year = grad_by_year["Year"].max()
+        year_chart = alt.Chart(grad_by_year).mark_bar(
+            cornerRadiusTopLeft=4,
+            cornerRadiusTopRight=4,
+        ).encode(
+            x=alt.X("Year:N", axis=alt.Axis(
+                labelColor="#B4B2A9", tickColor="#E0E0D8",
+                domainColor="#E0E0D8", labelFontSize=11, title=None
+            )),
+            y=alt.Y("Graduates:Q", axis=alt.Axis(
+                labelColor="#B4B2A9", gridColor="#F1EFE8",
+                domainOpacity=0, tickOpacity=0,
+                labelFontSize=11, title=None
+            )),
+            color=alt.condition(
+                alt.datum.Year == max_year,
+                alt.value("#1D9E75"),
+                alt.value("#9FE1CB")
+            ),
+            tooltip=["Year", "Graduates"]
+        ).properties(
+            height=180, background="transparent"
+        ).configure_view(strokeOpacity=0)
+
+        st.altair_chart(year_chart, use_container_width=True)
+
+    st.markdown("---")
+
+        # ── CHOIR BREAKDOWN TABLE ──
+    st.markdown("**📋 Choir breakdown**")
+
+    def rate_badge(rate):
+        if rate >= 80:
+            return '<span style="background:#E1F5EE; color:#0F6E56; font-size:10px; font-weight:500; padding:2px 8px; border-radius:20px;">Excellent</span>'
+        elif rate >= 60:
+            return '<span style="background:#E1F5EE; color:#1D9E75; font-size:10px; font-weight:500; padding:2px 8px; border-radius:20px;">Good</span>'
+        elif rate >= 40:
+            return '<span style="background:#FAEEDA; color:#854F0B; font-size:10px; font-weight:500; padding:2px 8px; border-radius:20px;">Average</span>'
+        else:
+            return '<span style="background:#F1EFE8; color:#5F5E5A; font-size:10px; font-weight:500; padding:2px 8px; border-radius:20px;">Needs attention</span>'
+
+    rows_html = ""
+    for _, row in choir_stats.iterrows():
+        pct = row["rate"]
+        bar_color = "#1D9E75" if pct >= 80 else "#5DCAA5" if pct >= 60 else "#B4B2A9"
+        rows_html += f"""
+        <tr>
+            <td><strong>{row['choir']}</strong></td>
+            <td>{int(row['total'])}</td>
+            <td>{int(row['graduated'])}</td>
+            <td>{int(row['pending'])}</td>
+            <td>{int(row['deceased'])}</td>
+            <td>
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <div style="width:70px; height:6px; background:#F1EFE8; border-radius:3px; overflow:hidden;">
+                        <div style="height:100%; width:{pct}%; background:{bar_color}; border-radius:3px;"></div>
+                    </div>
+                    <span style="font-size:12px; color:#1a1a1a; font-weight:500;">{pct}%</span>
+                </div>
+            </td>
+            <td>{rate_badge(pct)}</td>
+        </tr>
+        """
+
+    st.markdown(f"""
+        <style>
+        .analytics-table {{ width:100%; border-collapse:collapse; }}
+        .analytics-table th {{
+            text-align:left; font-size:10px; font-weight:500; color:#B4B2A9;
+            text-transform:uppercase; letter-spacing:0.06em;
+            padding:0 10px 10px; border-bottom:0.5px solid #E0E0D8;
+        }}
+        .analytics-table td {{
+            font-size:12px; color:#1a1a1a;
+            padding:9px 10px; border-bottom:0.5px solid #F1EFE8;
+            vertical-align:middle;
+        }}
+        .analytics-table tr:last-child td {{ border-bottom:none; }}
+        .analytics-table tr:hover td {{ background:#F7F8F6; }}
+        </style>
+        <table class="analytics-table">
+            <thead>
+                <tr>
+                    <th>Choir</th>
+                    <th>Total</th>
+                    <th>Graduated</th>
+                    <th>Pending</th>
+                    <th>Deceased</th>
+                    <th>Rate</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>{rows_html}</tbody>
+        </table>
+        """, unsafe_allow_html=True)
+
+    st.markdown("<div style='margin-top:12px'></div>", unsafe_allow_html=True)
+    csv_analytics = choir_stats.to_csv(index=False).encode("utf-8")
+    st.download_button(
+        "Download analytics",
+        csv_analytics,
+        "choir_analytics.csv",
+        "text/csv",
+        key="download_analytics"
+    )
+#-------user management----------------
+elif menu == "User Management":
+    render_user_management()
