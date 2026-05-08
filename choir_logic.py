@@ -25,7 +25,7 @@ def load_full_dataset():
 
     df = pd.merge(choir, grad, on="identification_no", how="left")
 
-    required = ["name", "choir", "gender", "status", "institute", "course_name", "year_of_graduation"]
+    required = ["name", "choir", "gender", "status", "institute", "course_name", "year_of_graduation","comment"]
     for col in required:
         if col not in df.columns:
             df[col] = None
