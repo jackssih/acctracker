@@ -357,5 +357,82 @@ def inject_theme():
     section[data-testid="stSidebar"] .stButton > button:hover {
         background: #FCEBEB !important;
     }
+
+    /* ── SIDEBAR ENHANCED COLOUR ── */
+
+    /* sidebar background — soft teal tint instead of flat white */
+    section[data-testid="stSidebar"] {
+        background: linear-gradient(160deg, #F0FAF6 0%, #FFFFFF 60%) !important;
+        border-right: 0.5px solid #C8EDE0 !important;
+    }
+
+    /* brand tile stronger */
+    .brand-tile {
+        background: #1D9E75 !important;
+    }
+    .brand-tile i {
+        color: #FFFFFF !important;
+    }
+
+    /* nav active item — deeper green */
+    section[data-testid="stSidebar"] [aria-selected="true"],
+    section[data-testid="stSidebar"] .nav-link-selected {
+        background-color: #1D9E75 !important;
+        color: #FFFFFF !important;
+        font-weight: 500 !important;
+    }
+
+    /* active icon white */
+    section[data-testid="stSidebar"] [aria-selected="true"] svg,
+    section[data-testid="stSidebar"] .nav-link-selected svg {
+        color: #FFFFFF !important;
+        fill: #FFFFFF !important;
+    }
+
+    /* inactive nav items slightly darker */
+    section[data-testid="stSidebar"] .nav-link {
+        color: #3D3D3A !important;
+    }
+
+    section[data-testid="stSidebar"] .nav-link:hover {
+        background-color: #D4F0E5 !important;
+        color: #0F6E56 !important;
+    }
+
+    /* avatar circle — solid teal */
+    .profile-row .avatar,
+    section[data-testid="stSidebar"] .avatar {
+        background: #1D9E75 !important;
+        color: #FFFFFF !important;
+    }
+
+    /* logout button — tinted red */
+    section[data-testid="stSidebar"] .stButton > button {
+        background: #FCEBEB !important;
+        color: #C0392B !important;
+        border: 0.5px solid #F09595 !important;
+    }
+
+    section[data-testid="stSidebar"] .stButton > button:hover {
+        background: #F5C6C6 !important;
+        color: #922B21 !important;
+    }
+
+    /* section labels — stronger */
+    section[data-testid="stSidebar"] small,
+    section[data-testid="stSidebar"] .menu-title {
+        color: #2E8B6A !important;
+        font-weight: 600 !important;
+    }
+
+    /* divider lines — teal tint */
+    section[data-testid="stSidebar"] hr {
+        border-top: 0.5px solid #C8EDE0 !important;
+    }
+
+    /* system settings item */
+    section[data-testid="stSidebar"] .nav-item {
+        color: #3D3D3A !important;
+    }
         </style>
     """, unsafe_allow_html=True)

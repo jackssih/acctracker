@@ -14,7 +14,10 @@ def refresh_data():
     st.session_state.edited_df = load_full_dataset()
 create_tables()
 
-st.set_page_config(page_title="Choir Graduation Tracker", layout="wide")
+st.set_page_config(
+    page_title="African Children's Choir Archives",
+    layout="wide"
+)
 from choir_theme import inject_theme
 inject_theme()
 # LOGIN
@@ -46,7 +49,7 @@ with st.sidebar:
     <div class="brand-block">
         <div class="brand-tile"><i class="ti ti-music"></i></div>
         <div>
-            <div class="brand-name">Choir Tracker</div>
+            <div class="brand-name">Data Traker</div>
             <div class="brand-sub">African Children's Choir</div>
         </div>
     </div>
@@ -76,7 +79,7 @@ with st.sidebar:
         "menu-title": {
             "font-size": "10px",
             "font-weight": "600",
-            "color": "#5F5E5A",        # ← darker so it's visible
+            "color": "#1C180A",        # ← darker so it's visible
             "text-transform": "uppercase",
             "letter-spacing": "0.08em",
             "padding": "0 6px",
@@ -84,22 +87,22 @@ with st.sidebar:
         },
         "icon": {
             "font-size": "16px",
-            "color": "#888780",
+            "color": "#161406",
         },
         "nav-link": {
             "font-size": "13px",
-            "color": "#5F5E5A",
+            "color": "#9C8733",
             "border-radius": "8px",
             "padding": "8px 10px",
             "margin-bottom": "1px",
         },
         "nav-link-selected": {
-            "background-color": "#E1F5EE",
+            "background-color": "#3FA984",
             "color": "#0F6E56",
             "font-weight": "500",
         },
         "icon-selected": {
-            "color": "#1D9E75",
+            "color": "#0A6B4C",
         },
     }
 )
@@ -207,7 +210,8 @@ if menu == "Dashboard":
             key="dashboard_sort"
         )
     with space:
-        st.markdown("**Dashboard**")
+        st.title("**Dashboard**")
+        st.caption("Track and edit all your choir data")
     # ── SEARCH LOGIC ──
     if search_clicked:
         results = data.copy()
@@ -578,7 +582,7 @@ if menu == "Dashboard":
         st.markdown("""
         <div style="background:#FFFFFF; border:0.5px solid #E0E0D8; border-radius:12px; padding:16px 18px;">
             <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
-                <span style="font-size:13px; font-weight:500; color:#1a1a1a;">📊 Graduation trend</span>
+                <span style="font-size:13px; font-weight:500; color:#1a1a1a;">Graduation trend</span>
                 <span style="font-size:11px; color:#888780; margin-left:auto;">by year</span>
             </div>
         </div>
@@ -635,7 +639,7 @@ if menu == "Dashboard":
         <div style="background:#FFFFFF; border:0.5px solid #E0E0D8;
                     border-radius:12px; padding:16px 18px; height:100%;">
             <div style="display:flex; align-items:center; gap:8px; margin-bottom:14px;">
-                <span style="font-size:13px; font-weight:500; color:#1a1a1a;">🎵 By choir</span>
+                <span style="font-size:13px; font-weight:500; color:#1a1a1a;">By choir</span>
             </div>
         """, unsafe_allow_html=True)
 
@@ -671,7 +675,7 @@ if menu == "Dashboard":
     <div style="background:#FFFFFF; border:0.5px solid #E0E0D8;
                 border-radius:12px; padding:16px 18px; margin-top:10px;">
         <div style="display:flex; align-items:center; gap:8px; margin-bottom:14px;">
-            <span style="font-size:13px; font-weight:500; color:#1a1a1a;">⭐ Recent graduates</span>
+            <span style="font-size:13px; font-weight:500; color:#1a1a1a;">Recent graduates</span>
             <span style="font-size:11px; color:#888780; margin-left:auto;">last 10</span>
         </div>
     """, unsafe_allow_html=True)
@@ -775,7 +779,7 @@ elif menu == "Manage Data":
         """, unsafe_allow_html=True)
         st.stop()
 
-    st.markdown("**Manage Data**")
+    st.title("**Manage Data**")
     st.caption("Upload, add and remove student records")
     st.markdown("---")
 
@@ -796,7 +800,7 @@ elif menu == "Manage Data":
 
         choir_template = pd.DataFrame(columns=["name", "choir", "gender", "status"])
         st.download_button(
-            "🎵  Choir data template",
+            "Choir data template",
             choir_template.to_csv(index=False),
             "choir_template.csv",
             "text/csv",
@@ -809,7 +813,7 @@ elif menu == "Manage Data":
             "course_name", "duration", "year_of_graduation"
         ])
         st.download_button(
-            "🎓  Graduation data template",
+            "Graduation data template",
             grad_template.to_csv(index=False),
             "graduation_template.csv",
             "text/csv",
@@ -839,7 +843,7 @@ elif menu == "Manage Data":
         """, unsafe_allow_html=True)
 
         choir_file = st.file_uploader(
-            "🎵 Upload choir data",
+            "Upload choir data",
             type=["csv", "xlsx"],
             key="choir_upload"
         )
@@ -850,7 +854,7 @@ elif menu == "Manage Data":
             st.rerun()
 
         grad_file = st.file_uploader(
-            "🎓 Upload graduation data",
+            "Upload graduation data",
             type=["csv", "xlsx"],
             key="grad_upload"
         )
@@ -879,7 +883,7 @@ elif menu == "Manage Data":
 
         with st.form("add_student"):
             name = st.text_input("Full name", placeholder="e.g. Sarah Nalwoga")
-            choir = st.text_input("Choir", placeholder="e.g. Choir 32")
+            choir = st.text_input("Choir", placeholder="e.g. ACC 32")
             g_col, s_col = st.columns(2)
             with g_col:
                 gender = st.selectbox("Gender", ["M", "F"])
@@ -1085,7 +1089,7 @@ elif menu == "Analytics":
     chart_col, gender_col = st.columns([2, 1])
 
     with chart_col:
-        st.markdown("**📊 Graduation rate by choir**")
+        st.markdown("Graduation rate by choir")
         import altair as alt
 
         choir_chart = alt.Chart(choir_stats).mark_bar(
@@ -1114,7 +1118,7 @@ elif menu == "Analytics":
         st.altair_chart(choir_chart, use_container_width=True)
 
     with gender_col:
-        st.markdown("**👥 Gender breakdown**")
+        st.markdown("Gender breakdown")
 
         total_safe = total if total > 0 else 1
         male_pct = round(male / total_safe * 100)
@@ -1141,7 +1145,7 @@ elif menu == "Analytics":
     st.markdown("---")
 
     # ── YEARLY TREND ──
-    st.markdown("**📈 Graduation trend by year**")
+    st.markdown("Graduation trend by year")
 
     if not grad_by_year.empty:
         max_year = grad_by_year["Year"].max()
@@ -1173,7 +1177,7 @@ elif menu == "Analytics":
     st.markdown("---")
 
         # ── CHOIR BREAKDOWN TABLE ──
-    st.markdown("**📋 Choir breakdown**")
+    st.markdown("**Choir breakdown**")
 
     def rate_badge(rate):
         if rate >= 80:
