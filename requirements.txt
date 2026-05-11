@@ -1,0 +1,6 @@
+streamlit
+pandas
+bcrypt
+openpyxl
+streamlit-option-menu
+altair

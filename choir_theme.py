@@ -29,48 +29,120 @@ def inject_theme():
         background-color: #F7F8F6 !important;
     }
 
-    /* ── SIDEBAR ── */
+    /* ── SIDEBAR BOLD COLOURS ── */
+
     section[data-testid="stSidebar"] {
-        background-color: #FFFFFF !important;
-        border-right: 0.5px solid #E0E0D8 !important;
+        background: linear-gradient(160deg, #0A5540 0%, #1D9E75 60%, #2DBF8A 100%) !important;
+        border-right: none !important;
+        box-shadow: 4px 0 20px rgba(10, 85, 64, 0.3) !important;
     }
 
-    section[data-testid="stSidebar"] * {
-        font-family: 'DM Sans', sans-serif !important;
+    /* brand block */
+    .brand-block {
+        border-bottom: 0.5px solid rgba(255,255,255,0.2) !important;
+    }
+    .brand-name {
+        color: #FFFFFF !important;
+        font-weight: 600 !important;
+    }
+    .brand-sub {
+        color: rgba(255,255,255,0.7) !important;
     }
 
-    /* sidebar nav menu active item */
-    section[data-testid="stSidebar"] .nav-link.active,
-    section[data-testid="stSidebar"] [aria-selected="true"] {
-        background-color: var(--teal-50) !important;
-        color: var(--teal-600) !important;
-        border-right: 2px solid var(--teal-400) !important;
-        border-radius: 0 !important;
-        font-weight: 500 !important;
+    /* brand logo border */
+    .brand-logo {
+        border: 2px solid rgba(255,255,255,0.3) !important;
     }
 
-    /* sidebar nav item hover */
+    /* nav section label */
+    section[data-testid="stSidebar"] .menu-title,
+    section[data-testid="stSidebar"] [style*="font-size:10px"] {
+        color: rgba(255,255,255,0.6) !important;
+        font-weight: 600 !important;
+    }
+
+    /* nav items — default */
+    section[data-testid="stSidebar"] .nav-link {
+        color: rgba(255,255,255,0.85) !important;
+        border-radius: 8px !important;
+    }
     section[data-testid="stSidebar"] .nav-link:hover {
-        background-color: var(--teal-50) !important;
-        color: var(--teal-600) !important;
+        background: rgba(255,255,255,0.15) !important;
+        color: #FFFFFF !important;
     }
 
-    /* sidebar icons */
-    section[data-testid="stSidebar"] .nav-link .icon {
-        color: var(--teal-400) !important;
+    /* nav icons — default */
+    section[data-testid="stSidebar"] .nav-link svg,
+    section[data-testid="stSidebar"] .nav-link i {
+        color: rgba(255,255,255,0.7) !important;
     }
 
-    /* sidebar header text */
-    section[data-testid="stSidebar"] h1,
-    section[data-testid="stSidebar"] h2,
-    section[data-testid="stSidebar"] h3 {
-        font-size: 13px !important;
-        font-weight: 500 !important;
-        color: #888780 !important;
-        text-transform: uppercase !important;
-        letter-spacing: 0.07em !important;
+    /* nav active item */
+    section[data-testid="stSidebar"] .nav-link-selected {
+        background: rgba(255,255,255,0.22) !important;
+        color: #FFFFFF !important;
+        font-weight: 600 !important;
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.3) !important;
     }
 
+    /* active icon */
+    section[data-testid="stSidebar"] .nav-link-selected svg,
+    section[data-testid="stSidebar"] .nav-link-selected i {
+        color: #FFFFFF !important;
+    }
+
+    /* system section label */
+    section[data-testid="stSidebar"] hr {
+        border-top: 0.5px solid rgba(255,255,255,0.2) !important;
+    }
+
+    /* settings item */
+    section[data-testid="stSidebar"] div[style*="color:#5F5E5A"] {
+        color: rgba(255,255,255,0.85) !important;
+    }
+    section[data-testid="stSidebar"] i[style*="color:#B4B2A9"] {
+        color: rgba(255,255,255,0.6) !important;
+    }
+
+    /* profile section */
+    section[data-testid="stSidebar"] div[style*="color:#1a1a1a"] {
+        color: #FFFFFF !important;
+    }
+    section[data-testid="stSidebar"] div[style*="color:#888780"] {
+        color: rgba(255,255,255,0.65) !important;
+    }
+
+    /* avatar */
+    section[data-testid="stSidebar"] div[style*="border-radius:50%"] {
+        background: rgba(255,255,255,0.2) !important;
+        color: #FFFFFF !important;
+        border: 1.5px solid rgba(255,255,255,0.4) !important;
+    }
+
+    /* role badge */
+    section[data-testid="stSidebar"] div[style*="border-radius:20px"] {
+        background: rgba(255,255,255,0.2) !important;
+        color: #FFFFFF !important;
+    }
+
+    /* logout button */
+    section[data-testid="stSidebar"] .stButton > button {
+        background: rgba(255,255,255,0.12) !important;
+        color: #FFFFFF !important;
+        border: 0.5px solid rgba(255,255,255,0.3) !important;
+        border-radius: 8px !important;
+    }
+    section[data-testid="stSidebar"] .stButton > button:hover {
+        background: rgba(220, 53, 53, 0.4) !important;
+        border-color: rgba(255,100,100,0.5) !important;
+    }
+
+    /* menu title text */
+    section[data-testid="stSidebar"] p,
+    section[data-testid="stSidebar"] span,
+    section[data-testid="stSidebar"] small {
+        color: rgba(255,255,255,0.75) !important;
+    }
     /* ── MAIN CONTENT AREA ── */
     .main .block-container {
         padding: 1.5rem 2rem 2rem !important;
@@ -111,23 +183,19 @@ def inject_theme():
 
     /* ── BUTTONS ── */
     .stButton > button {
-        background-color: var(--teal-400) !important;
-        color: #FFFFFF !important;
-        border: none !important;
+        background-color: transparent !important;
+        color: var(--teal-600) !important;
+        border: 1px solid var(--teal-400) !important;
         border-radius: 8px !important;
         font-size: 13px !important;
         font-weight: 500 !important;
-        padding: 8px 18px !important;
         font-family: 'DM Sans', sans-serif !important;
-        transition: background 0.15s ease !important;
     }
 
-    .stButton > button:hover {
-        background-color: var(--teal-600) !important;
-    }
+    
 
     .stButton > button:active {
-        background-color: var(--teal-800) !important;
+        background-color: transparent !important;
         transform: scale(0.98) !important;
     }
 
@@ -434,5 +502,282 @@ def inject_theme():
     section[data-testid="stSidebar"] .nav-item {
         color: #3D3D3A !important;
     }
+    /* ── AMBER ACCENT THROUGHOUT ── */
+
+    /* ── PAGE BACKGROUND — subtle warm tint ── */
+    .stApp {
+        background-color: #F7F6F2 !important;
+    }
+
+    /* ── SIDEBAR — warm gradient ── */
+    section[data-testid="stSidebar"] {
+        background: linear-gradient(170deg, #F0FAF6 0%, #FDF8F0 100%) !important;
+        border-right: 0.5px solid #E8E4D8 !important;
+    }
+
+    /* ── METRIC CARDS — amber active state ── */
+    .metric-card.active {
+        border: 1.5px solid #E8A020 !important;
+        background: linear-gradient(135deg, #FDF3E0 0%, #FEF9F0 100%) !important;
+    }
+    .metric-card.active .metric-card-value {
+        color: #B86E00 !important;
+    }
+
+    /* ── TOP SEARCH BAR — warm border ── */
+    .search-card {
+        border: 0.5px solid #E8E0CC !important;
+        background: linear-gradient(135deg, #FFFFFF 0%, #FDFAF4 100%) !important;
+    }
+
+    /* ── DATAFRAME HEADER — warm tint ── */
+    [data-testid="stDataFrame"] th {
+        background-color: #FDF8F0 !important;
+    }
+
+    /* ── CARDS — warm white ── */
+    [data-testid="stForm"],
+    .stDataFrame,
+    [data-testid="stDataEditor"] {
+        background: #FDFCF8 !important;
+    }
+
+    /* ── DIVIDERS — warm tone ── */
+    hr {
+        border-top: 0.5px solid #E8E0CC !important;
+    }
+
+    /* ── DOWNLOAD BUTTONS — amber outline ── */
+    .stDownloadButton > button {
+        background-color: transparent !important;
+        color: #B86E00 !important;
+        border: 1px solid #E8A020 !important;
+        border-radius: 8px !important;
+    }
+    .stDownloadButton > button:hover {
+        background-color: #FDF3E0 !important;
+    }
+
+    /* ── SELECTBOX FOCUS — amber ring ── */
+    .stSelectbox > div > div:focus-within {
+        border-color: #E8A020 !important;
+        box-shadow: 0 0 0 2px rgba(232,160,32,0.15) !important;
+    }
+
+    /* ── ANALYTICS STAT CARDS — amber card ── */
+    [data-testid="stMarkdownContainer"] div[style*="background:#FAEEDA"] {
+        background: linear-gradient(135deg, #FDF3E0, #FEF9F0) !important;
+    }
+
+    /* ── SIDEBAR NAV HOVER — warm green ── */
+    section[data-testid="stSidebar"] .nav-link:hover {
+        background: linear-gradient(135deg, #E1F5EE, #FDF8F0) !important;
+    }
+
+    /* ── SECTION HEADERS — amber dot accent ── */
+    .stMarkdown h1::before,
+    .stMarkdown h2::before,
+    .stMarkdown h3::before {
+        content: '';
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #E8A020;
+        margin-right: 8px;
+        vertical-align: middle;
+        margin-bottom: 2px;
+    }
+
+    /* ── TOAST NOTIFICATIONS — amber ── */
+    [data-testid="stToast"] {
+        background: #1a1a1a !important;
+        border-left: 3px solid #E8A020 !important;
+    }
+
+    /* ── SUCCESS ALERTS — keep teal ── */
+    .stSuccess {
+        background: linear-gradient(135deg, #E1F5EE, #F0FAF6) !important;
+        border-left: 3px solid #1D9E75 !important;
+    }
+
+    /* ── WARNING ALERTS — amber ── */
+    .stWarning {
+        background: linear-gradient(135deg, #FDF3E0, #FEF9F0) !important;
+        border-left: 3px solid #E8A020 !important;
+        color: #854F0B !important;
+    }
+
+    /* ── INFO ALERTS — warm blue ── */
+    .stInfo {
+        background: linear-gradient(135deg, #EEF4FC, #F5F8FE) !important;
+        border-left: 3px solid #378ADD !important;
+    }
+
+    /* ── SCROLLBAR — warm tone ── */
+    ::-webkit-scrollbar-thumb {
+        background: #D4C9A8 !important;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background: #C4B48A !important;
+    }
+
+    /* ── LOGIN PAGE GRADIENT — include amber ── */
+    /* this targets the teal gradient and adds warmth at the bottom */
+    .stApp[data-testid="stAppViewContainer"] {
+        background: linear-gradient(
+            160deg,
+            #0A5540 0%,
+            #1D9E75 45%,
+            #5DCAA5 75%,
+            #A8D5A2 100%
+        ) !important;
+    }
+                /* ── GLOBAL FONT SIZE INCREASE ── */
+
+    /* base font */
+    html, body, .stApp, [class*="css"] {
+        font-size: 15px !important;
+    }
+
+    /* general text */
+    p, div, span, label, td, th, li {
+        font-size: 15px !important;
+    }
+
+    /* markdown text */
+    .stMarkdown p {
+        font-size: 15px !important;
+    }
+
+    /* inputs */
+    .stTextInput > div > div > input {
+        font-size: 15px !important;
+    }
+
+    /* selectbox */
+    .stSelectbox > div > div {
+        font-size: 15px !important;
+    }
+
+    /* number input */
+    .stNumberInput > div > div > input {
+        font-size: 15px !important;
+    }
+
+    /* buttons */
+    .stButton > button {
+        font-size: 14px !important;
+    }
+
+    .stDownloadButton > button {
+        font-size: 14px !important;
+    }
+
+    .stFormSubmitButton > button {
+        font-size: 15px !important;
+    }
+
+    /* dataframe */
+    [data-testid="stDataFrame"] td {
+        font-size: 14px !important;
+    }
+
+    [data-testid="stDataFrame"] th {
+        font-size: 12px !important;
+    }
+
+    /* sidebar nav */
+    section[data-testid="stSidebar"] .nav-link {
+        font-size: 14px !important;
+    }
+
+    /* captions */
+    .stCaption, small {
+        font-size: 12px !important;
+    }
+
+    /* metric cards */
+    .metric-card-label {
+        font-size: 12px !important;
+    }
+
+    .metric-card-value {
+        font-size: 30px !important;
+    }
+
+    /* alerts */
+    .stSuccess, .stWarning, .stError, .stInfo {
+        font-size: 14px !important;
+    }
+
+    /* checkbox */
+    .stCheckbox > label {
+        font-size: 14px !important;
+    }
+
+    /* table cells in custom HTML tables */
+    .grad-table td, .analytics-table td, .user-table td {
+        font-size: 13px !important;
+    }
+
+    .grad-table th, .analytics-table th, .user-table th {
+        font-size: 11px !important;
+    }
+    /* ── SIDEBAR TEXT OVERRIDES — black items ── */
+
+    /* ACC Archives brand name */
+    .brand-name {
+        color: #1a1a1a !important;
+        font-weight: 600 !important;
+    }
+    .brand-sub {
+        color: #5F5E5A !important;
+    }
+
+    /* logout button — dark text */
+    section[data-testid="stSidebar"] .stButton > button {
+        background: rgba(255,255,255,0.9) !important;
+        color: #1a1a1a !important;
+        border: 0.5px solid rgba(255,255,255,0.5) !important;
+        border-radius: 8px !important;
+    }
+    section[data-testid="stSidebar"] .stButton > button:hover {
+        background: #FCEBEB !important;
+        color: #C0392B !important;
+        border-color: #F09595 !important;
+    }
+
+
+    /* the sidebar collapse arrow button */
+    button[data-testid="baseButton-headerNoPadding"] svg {
+        color: #1a1a1a !important;
+        fill: #1a1a1a !important;
+        stroke: #1a1a1a !important;
+    }
+
+    /* username text in profile */
+    section[data-testid="stSidebar"] div[style*="font-weight:500"][style*="color"] {
+        color: #1a1a1a !important;
+    }
+    /* ── LOGOUT BUTTON — reset to original ── */
+    section[data-testid="stSidebar"] .stButton > button {
+        background: #FCEBEB !important;
+        color: #C0392B !important;
+        border: 0.5px solid #F09595 !important;
+        border-radius: 8px !important;
+        font-size: 12px !important;
+        padding: 6px !important;
+    }
+
+    section[data-testid="stSidebar"] .stButton > button:hover {
+        background: #F5C6C6 !important;
+        color: #922B21 !important;
+    }
+
+    section[data-testid="stSidebar"] .stButton > button * {
+        color: #C0392B !important;
+    }
+                
         </style>
     """, unsafe_allow_html=True)

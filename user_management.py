@@ -24,7 +24,7 @@ def render_user_management():
         st.warning("You don't have permission to access this page.")
         st.stop()
 
-    st.markdown("**User Management**")
+    st.title("**User Management**")
     st.caption("Manage who can access the system and what they can do")
     st.markdown("---")
 

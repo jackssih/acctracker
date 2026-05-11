@@ -7,6 +7,9 @@ from choir_logic import load_full_dataset
 from streamlit_option_menu import option_menu
 from database import connect_db
 from user_management import render_user_management
+from settings import render_settings
+import base64
+from pathlib import Path
 def is_admin():
     return st.session_state.get("role") == "admin"
 
@@ -26,49 +29,90 @@ if not login():
 
 # SIDEBAR NAVIGATION
 with st.sidebar:
-    # ── BRAND ──
-    st.markdown("""
-    <style>
-    section[data-testid="stSidebar"] > div { padding-top: 0 !important; }
-    .brand-block {
-        display: flex; align-items: center; gap: 10px;
-        padding: 18px 16px 14px;
-        border-bottom: 0.5px solid #E0E0D8;
-        margin-bottom: 8px;
-    }
-    .brand-tile {
-        width: 34px; height: 34px;
-        background: #E1F5EE; border-radius: 8px;
-        display: flex; align-items: center; justify-content: center;
-    }
-    .brand-tile i { font-size: 18px; color: #1D9E75; }
-    .brand-name { font-size: 13px; font-weight: 500; color: #1a1a1a; line-height: 1.3; }
-    .brand-sub  { font-size: 10px; color: #888780; }
-    </style>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-    <div class="brand-block">
-        <div class="brand-tile"><i class="ti ti-music"></i></div>
-        <div>
-            <div class="brand-name">Data Traker</div>
-            <div class="brand-sub">African Children's Choir</div>
+    # ── BRAND + LOGO ──
+    logo_path = Path("logo one.jpg")
+    
+    
+    
+    if logo_path.exists():
+        img_b64 = base64.b64encode(logo_path.read_bytes()).decode()
+        st.markdown(f"""
+            <style>
+            section[data-testid="stSidebar"] > div {{ padding-top: 0 !important; }}
+            .brand-block {{
+                display: flex; align-items: center; gap: 10px;
+                padding: 14px 16px;
+                border-bottom: 0.5px solid #C8EDE0;
+            }}
+            .brand-logo {{
+                width: 60px; height: 60px; border-radius: 8px;
+                overflow: hidden; flex-shrink: 0;
+                border: 1px solid #E1F5EE;
+            }}
+            .brand-logo img {{
+                width: 100%; height: 100%; object-fit: contain;
+            }}
+            .brand-name {{ font-size: 13px; font-weight: 500; color: #1a1a1a; line-height: 1.3; }}
+            .brand-sub  {{ font-size: 10px; color: #888780; }}
+            </style>
+            <link rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+            <div class="brand-block">
+                <div class="brand-logo">
+                    <img src="data:image/jpeg;base64,{img_b64}" alt="ACC Logo">
+                </div>
+                <div>
+                    <div class="brand-name">ACC Archives</div>
+                    <div class="brand-sub">African Children's Choir</div>
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
+    else:
+        st.markdown("""
+        <style>
+        section[data-testid="stSidebar"] > div { padding-top: 0 !important; }
+        .brand-block {
+            display: flex; align-items: center; gap: 10px;
+            padding: 14px 16px;
+            border-bottom: 0.5px solid #C8EDE0;
+        }
+        .brand-tile {
+            width: 36px; height: 36px; border-radius: 8px;
+            background: #1D9E75;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .brand-tile i { font-size: 18px; color: #FFFFFF; }
+        .brand-name { font-size: 13px; font-weight: 500; color: #1a1a1a; }
+        .brand-sub  { font-size: 10px; color: #888780; }
+        </style>
+        <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+        <div class="brand-block">
+            <div class="brand-tile"><i class="ti ti-music"></i></div>
+            <div>
+                <div class="brand-name">ACC Archives</div>
+                <div class="brand-sub">African Children's Choir</div>
+            </div>
         </div>
-    </div>
-    """, unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
 
     # ── NAV MENU ──
     menu = option_menu(
     menu_title="Menu",
     options=[
-        "Dashboard",
-        "Manage Data",
-        "Analytics",
-        "User Management",
+    "Dashboard",
+    "Manage Data",
+    "Analytics",
+    "User Management",
+    "Settings",
     ],
     icons=[
-        "speedometer2",        # Dashboard
-        "cloud-upload",        # Manage Data  
-        "bar-chart-line",      # Analytics
-        "people",              # User Management
+        "speedometer2",
+        "cloud-upload",
+        "bar-chart-line",
+        "people",
+        "gear",
     ],
     default_index=0,
     styles={
@@ -107,17 +151,7 @@ with st.sidebar:
     }
 )
     # ── DIVIDER + SETTINGS ──
-    st.markdown("""
-    <hr style="border:none; border-top: 0.5px solid #E0E0D8; margin: 8px 10px;">
-    <div style="padding: 0 10px;">
-      <div style="font-size:10px; font-weight:500; color:#B4B2A9; text-transform:uppercase;
-                  letter-spacing:0.08em; padding: 0 6px; margin-bottom:4px;">System</div>
-      <div style="display:flex; align-items:center; gap:10px; padding:8px 10px;
-                  border-radius:8px; font-size:13px; color:#5F5E5A; cursor:pointer;">
-        <i class="ti ti-settings" style="font-size:17px; color:#B4B2A9;"></i> Settings
-      </div>
-    </div>
-    """, unsafe_allow_html=True)
+    
 
     # ── PROFILE + LOGOUT AT BOTTOM ──
     st.markdown("<div style='flex:1'></div>", unsafe_allow_html=True)
@@ -125,21 +159,32 @@ with st.sidebar:
     <hr style="border:none; border-top: 0.5px solid #E0E0D8; margin: 8px 10px 0;">
     """, unsafe_allow_html=True)
 
-    role = st.session_state.get('role', 'Admin')
+    username = st.session_state.get("username", "user")
+    role = st.session_state.get("role", "viewer")
+    role_color = "#1D9E75" if role == "admin" else "#378ADD"
+    role_bg = "#E1F5EE" if role == "admin" else "#E6F1FB"
+    ini = username[:2].upper()
+
     st.markdown(f"""
     <div style="display:flex; align-items:center; gap:10px;
-                padding: 12px 10px; border-radius:8px; cursor:pointer;">
-        <div style="width:30px; height:30px; border-radius:50%; background:#E1F5EE;
-                    color:#0F6E56; font-size:11px; font-weight:500;
+                padding: 12px 10px; border-radius:8px;">
+        <div style="width:30px; height:30px; border-radius:50%; background:{role_bg};
+                    color:{role_color}; font-size:11px; font-weight:500;
                     display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-            JK
+            {ini}
         </div>
         <div style="flex:1;">
-            <div style="font-size:12px; font-weight:500; color:#1a1a1a;">Jackson K.</div>
-            <div style="font-size:10px; color:#888780;">{role}</div>
+            <div style="font-size:12px; font-weight:500; color:#1a1a1a;">{username}</div>
+            <div style="display:inline-flex; align-items:center; margin-top:2px;
+                        background:{role_bg}; color:{role_color};
+                        font-size:10px; font-weight:500; padding:1px 8px;
+                        border-radius:20px;">
+                {role.capitalize()}
+            </div>
         </div>
     </div>
     """, unsafe_allow_html=True)
+
 
     if st.button("Logout", use_container_width=True, key="logout_btn"):
         st.session_state.auth = False
@@ -579,75 +624,69 @@ if menu == "Dashboard":
     chart_col, choir_col = st.columns([2, 1])
 
     with chart_col:
-        st.markdown("""
-        <div style="background:#FFFFFF; border:0.5px solid #E0E0D8; border-radius:12px; padding:16px 18px;">
-            <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
-                <span style="font-size:13px; font-weight:500; color:#1a1a1a;">Graduation trend</span>
-                <span style="font-size:11px; color:#888780; margin-left:auto;">by year</span>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown("**Graduation trend**")
 
         trend = data[data["graduated"] == True].copy()
-        trend_grouped = (
-            trend.groupby("year_of_graduation")
-            .size()
-            .reset_index(name="Graduates")
-            .sort_values("year_of_graduation")
-            .rename(columns={"year_of_graduation": "Year"})
-        )
-        trend_grouped["Year"] = trend_grouped["Year"].astype(int).astype(str)
+        trend = trend.dropna(subset=["year_of_graduation"])
 
-        import altair as alt
-        chart = alt.Chart(trend_grouped).mark_bar(
-            cornerRadiusTopLeft=4,
-            cornerRadiusTopRight=4,
-            color="#9FE1CB"
-        ).encode(
-            x=alt.X("Year:N", axis=alt.Axis(
-                labelColor="#B4B2A9",
-                tickColor="#E0E0D8",
-                domainColor="#E0E0D8",
-                labelFontSize=11,
-                title=None
-            )),
-            y=alt.Y("Graduates:Q", axis=alt.Axis(
-                labelColor="#B4B2A9",
-                gridColor="#F1EFE8",
-                domainOpacity=0,
-                tickOpacity=0,
-                labelFontSize=11,
-                title=None
-            )),
-            tooltip=["Year", "Graduates"],
-            color=alt.condition(
-                alt.datum.Year == str(int(trend_grouped["Year"].max())),
-                alt.value("#1D9E75"),
-                alt.value("#9FE1CB")
+        if not trend.empty:
+            trend_grouped = (
+                trend.groupby("year_of_graduation")
+                .size()
+                .reset_index(name="Graduates")
+                .sort_values("year_of_graduation")
+                .rename(columns={"year_of_graduation": "Year"})
             )
-        ).properties(
-            height=180,
-            background="transparent"
-        ).configure_view(
-            strokeOpacity=0
-        )
+            trend_grouped["Year"] = trend_grouped["Year"].astype(int).astype(str)
+            max_year = trend_grouped["Year"].max()
 
-        st.altair_chart(chart, use_container_width=True)
+            import altair as alt
+            chart = alt.Chart(trend_grouped).mark_bar(
+                cornerRadiusTopLeft=4,
+                cornerRadiusTopRight=4,
+            ).encode(
+                x=alt.X("Year:N", axis=alt.Axis(
+                    labelColor="#B4B2A9",
+                    tickColor="#E0E0D8",
+                    domainColor="#E0E0D8",
+                    labelFontSize=11,
+                    title=None
+                )),
+                y=alt.Y("Graduates:Q", axis=alt.Axis(
+                    labelColor="#B4B2A9",
+                    gridColor="#F1EFE8",
+                    domainOpacity=0,
+                    tickOpacity=0,
+                    labelFontSize=11,
+                    title=None
+                )),
+                color=alt.condition(
+                    alt.datum.Year == max_year,
+                    alt.value("#1D9E75"),
+                    alt.value("#9FE1CB")
+                ),
+                tooltip=["Year", "Graduates"]
+            ).properties(
+                height=180,
+                background="transparent"
+            ).configure_view(
+                strokeOpacity=0
+            )
+
+            st.altair_chart(chart, use_container_width=True)
+        else:
+            st.info("No graduation data yet.")
 
     with choir_col:
-        st.markdown("""
-        <div style="background:#FFFFFF; border:0.5px solid #E0E0D8;
-                    border-radius:12px; padding:16px 18px; height:100%;">
-            <div style="display:flex; align-items:center; gap:8px; margin-bottom:14px;">
-                <span style="font-size:13px; font-weight:500; color:#1a1a1a;">By choir</span>
-            </div>
-        """, unsafe_allow_html=True)
+        st.markdown("**By choir**")
 
         choir_stats = data.groupby("choir").agg(
             total=("identification_no", "count"),
             graduated=("graduated", "sum")
         ).reset_index()
-        choir_stats["pct"] = (choir_stats["graduated"] / choir_stats["total"] * 100).round(1)
+        choir_stats["pct"] = (
+            choir_stats["graduated"] / choir_stats["total"] * 100
+        ).round(1)
         choir_stats = choir_stats.sort_values("pct", ascending=False).head(6)
 
         for _, row in choir_stats.iterrows():
@@ -668,17 +707,8 @@ if menu == "Dashboard":
             </div>
             """, unsafe_allow_html=True)
 
-        st.markdown("</div>", unsafe_allow_html=True)
-
     # ── RECENT GRADUATES TABLE ──
-    st.markdown("""
-    <div style="background:#FFFFFF; border:0.5px solid #E0E0D8;
-                border-radius:12px; padding:16px 18px; margin-top:10px;">
-        <div style="display:flex; align-items:center; gap:8px; margin-bottom:14px;">
-            <span style="font-size:13px; font-weight:500; color:#1a1a1a;">Recent graduates</span>
-            <span style="font-size:11px; color:#888780; margin-left:auto;">last 10</span>
-        </div>
-    """, unsafe_allow_html=True)
+    st.markdown("**Recent graduates**")
 
     recent = data[data["graduated"] == True].copy()
     required_cols = ["name", "choir", "institute", "course_name", "year_of_graduation"]
@@ -693,78 +723,76 @@ if menu == "Dashboard":
         .reset_index(drop=True)
     )
 
-    # initials helper
     def initials(name):
         parts = str(name).split()
         return (parts[0][0] + parts[-1][0]).upper() if len(parts) >= 2 else str(name)[:2].upper()
 
-    rows_html = ""
-    for _, row in recent_display.iterrows():
-        ini = initials(row["name"])
-        year = int(row["year_of_graduation"]) if pd.notna(row["year_of_graduation"]) else "—"
-        institute = row["institute"] if pd.notna(row["institute"]) else "—"
-        course = row["course_name"] if pd.notna(row["course_name"]) else "—"
-        rows_html += f"""
-        <tr>
-            <td>
-                <div style="display:flex; align-items:center; gap:8px;">
-                    <div style="width:26px; height:26px; border-radius:50%; background:#E1F5EE;
-                                color:#0F6E56; font-size:10px; font-weight:500;
-                                display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                        {ini}
+    if recent_display.empty:
+        st.info("No graduates yet.")
+    else:
+        rows_html = ""
+        for _, row in recent_display.iterrows():
+            ini = initials(row["name"])
+            year = int(row["year_of_graduation"]) if pd.notna(row["year_of_graduation"]) else "—"
+            institute = row["institute"] if pd.notna(row["institute"]) else "—"
+            course = row["course_name"] if pd.notna(row["course_name"]) else "—"
+            rows_html += f"""
+            <tr>
+                <td>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <div style="width:26px; height:26px; border-radius:50%; background:#E1F5EE;
+                                    color:#0F6E56; font-size:10px; font-weight:500;
+                                    display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                            {ini}
+                        </div>
+                        {row['name']}
                     </div>
-                    {row['name']}
-                </div>
-            </td>
-            <td>{row['choir']}</td>
-            <td>{institute}</td>
-            <td>{course}</td>
-            <td><span style="background:#F1EFE8; color:#5F5E5A; font-size:11px;
-                            padding:2px 8px; border-radius:6px; font-weight:500;">{year}</span></td>
-            <td><span style="background:#E1F5EE; color:#0F6E56; font-size:10px;
-                            font-weight:500; padding:2px 8px; border-radius:20px;">Graduated</span></td>
-        </tr>
-        """
+                </td>
+                <td>{row['choir']}</td>
+                <td>{institute}</td>
+                <td>{course}</td>
+                <td><span style="background:#F1EFE8; color:#5F5E5A; font-size:11px;
+                                padding:2px 8px; border-radius:6px; font-weight:500;">{year}</span></td>
+                <td><span style="background:#E1F5EE; color:#0F6E56; font-size:10px;
+                                font-weight:500; padding:2px 8px; border-radius:20px;">Graduated</span></td>
+            </tr>
+            """
 
-    st.markdown(f"""
-        <style>
-        .grad-table {{ width:100%; border-collapse:collapse; }}
-        .grad-table th {{
-            text-align:left; font-size:10px; font-weight:500; color:#B4B2A9;
-            text-transform:uppercase; letter-spacing:0.06em; padding:0 10px 10px;
-            border-bottom: 0.5px solid #E0E0D8;
-        }}
-        .grad-table td {{
-            font-size:12px; color:#1a1a1a;
-            padding:9px 10px; border-bottom:0.5px solid #F1EFE8;
-            vertical-align:middle;
-        }}
-        .grad-table tr:last-child td {{ border-bottom:none; }}
-        .grad-table tr:hover td {{ background:#F7F8F6; }}
-        </style>
-        <table class="grad-table">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Choir</th>
-                    <th>Institute</th>
-                    <th>Course</th>
-                    <th>Year</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>{rows_html}</tbody>
-        </table>
-        </div>
+        st.markdown(f"""
+            <style>
+            .grad-table {{ width:100%; border-collapse:collapse; }}
+            .grad-table th {{
+                text-align:left; font-size:10px; font-weight:500; color:#B4B2A9;
+                text-transform:uppercase; letter-spacing:0.06em; padding:0 10px 10px;
+                border-bottom: 0.5px solid #E0E0D8;
+            }}
+            .grad-table td {{
+                font-size:12px; color:#1a1a1a;
+                padding:9px 10px; border-bottom:0.5px solid #F1EFE8;
+                vertical-align:middle;
+            }}
+            .grad-table tr:last-child td {{ border-bottom:none; }}
+            .grad-table tr:hover td {{ background:#F7F8F6; }}
+            </style>
+            <table class="grad-table">
+                <thead>
+                    <tr>
+                        <th>Name</th><th>Choir</th><th>Institute</th>
+                        <th>Course</th><th>Year</th><th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>{rows_html}</tbody>
+            </table>
         """, unsafe_allow_html=True)
-    csv_recent = recent_display.to_csv(index=False).encode("utf-8")
-    st.download_button(
-        "Download recent graduates",
-        csv_recent,
-        "recent_graduates.csv",
-        "text/csv",
-        key="download_recent"
-    )
+
+        csv_recent = recent_display.to_csv(index=False).encode("utf-8")
+        st.download_button(
+            "Download recent graduates",
+            csv_recent,
+            "recent_graduates.csv",
+            "text/csv",
+            key="download_recent"
+        )
                         
 # ---------------- UPLOAD ----------------
 elif menu == "Manage Data":
@@ -996,7 +1024,7 @@ elif menu == "Manage Data":
 elif menu == "Analytics":
     data = st.session_state.edited_df.copy()
 
-    st.markdown("**Analytics**")
+    st.title("**Analytics**")
     st.caption("Graduation insights across all choirs")
     st.markdown("---")
 
@@ -1050,6 +1078,7 @@ elif menu == "Analytics":
         """, unsafe_allow_html=True)
 
     with c2:
+        total_safe = total if total > 0 else 1
         st.markdown(f"""
         <div style="background:#FFFFFF; border:0.5px solid #E0E0D8; border-radius:12px;
                     padding:14px 16px; display:flex; align-items:center; gap:12px;">
@@ -1061,7 +1090,7 @@ elif menu == "Analytics":
                 <div style="font-size:11px; color:#888780; margin-bottom:3px;">Gender split</div>
                 <div style="font-size:22px; font-weight:500; color:#1a1a1a;">{male}M · {female}F</div>
                 <div style="font-size:11px; color:#888780;">
-                    {round(male/total*100)}% male · {round(female/total*100)}% female
+                    {round(male/total_safe*100)}% male · {round(female/total_safe*100)}% female
                 </div>
             </div>
         </div>
@@ -1256,3 +1285,5 @@ elif menu == "Analytics":
 #-------user management----------------
 elif menu == "User Management":
     render_user_management()
+elif menu == "Settings":
+    render_settings()
