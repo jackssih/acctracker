@@ -180,7 +180,7 @@ def render_settings():
             csv_all = data[export_cols].to_csv(index=False).encode("utf-8")
 
             st.download_button(
-                "⬇ Download all data (CSV)",
+                "Download all data (CSV)",
                 csv_all,
                 "acc_archives_export.csv",
                 "text/csv",
@@ -213,7 +213,7 @@ def render_settings():
         st.markdown("---")
 
         # ── BACKUP DATABASE ──
-        st.markdown("**💾 Backup database**")
+        st.markdown("**Backup database**")
         st.markdown("""
         <div style="background:#F7F8F6; border:0.5px solid #E0E0D8; border-radius:10px;
                     padding:10px 14px; font-size:12px; color:#5F5E5A; margin-bottom:10px;">
