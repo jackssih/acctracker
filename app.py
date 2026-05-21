@@ -11,7 +11,22 @@ from settings import render_settings
 import base64
 from pathlib import Path
 import re
+from database import create_tables, verify_database, get_db_size
 
+# Initialize database with session state to prevent multiple initializations
+if 'db_initialized' not in st.session_state:
+    try:
+        create_tables()
+        st.session_state.db_initialized = True
+        st.session_state.db_size = get_db_size()
+    except Exception as e:
+        st.error(f"Database initialization failed: {str(e)}")
+        st.stop()
+
+# Verify database on each session
+if not verify_database():
+    st.error("Database verification failed. Please contact administrator.")
+    st.stop()
 def natural_sort_key(s):
     return [int(t) if t.isdigit() else t.lower()
             for t in re.split(r'(\d+)', s)]
