@@ -9,7 +9,6 @@ import streamlit.components.v1 as components
 def verify_password(plain: str, hashed: str) -> bool:
     return bcrypt.checkpw(plain.encode(), hashed.encode())
 
-
 def get_user(username: str):
     conn = connect_db(row_factory=True)
     user = conn.execute(
@@ -476,5 +475,5 @@ def login():
 </body>
 </html>"""
 
-     components.html(html_content, height=800, scrolling=False)
+    components.html(html_content, height=800, scrolling=False)
     return False
