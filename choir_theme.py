@@ -3,781 +3,455 @@ def inject_theme():
     st.markdown("""
     <style>
 
-    /* ── FONTS ── */
-    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=DM+Mono:wght@400&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
 
     html, body, [class*="css"] {
         font-family: 'DM Sans', sans-serif !important;
     }
 
-    /* ── ROOT PALETTE ── */
-    :root {
-        --teal-50:  #E1F5EE;
-        --teal-100: #9FE1CB;
-        --teal-400: #1D9E75;
-        --teal-600: #0F6E56;
-        --teal-800: #085041;
-        --amber-50: #FAEEDA;
-        --amber-800: #854F0B;
-        --gray-50:  #F1EFE8;
-        --gray-200: #B4B2A9;
-        --gray-600: #5F5E5A;
-    }
-
-    /* ── PAGE BACKGROUND ── */
+    /* ════════════════════════════════════════
+       MAIN BACKGROUND — LIGHT GREY
+    ════════════════════════════════════════ */
+    
     .stApp {
-        background-color: #F7F8F6 !important;
+        background-color: #F5F5F0 !important;
     }
 
-    /* ── SIDEBAR BOLD COLOURS ── */
+    /* ════════════════════════════════════════
+       SIDEBAR — GLASSY DARK (matches login card)
+    ════════════════════════════════════════ */
 
     section[data-testid="stSidebar"] {
-        background: linear-gradient(160deg, #0A5540 0%, #1D9E75 60%, #2DBF8A 100%) !important;
-        border-right: none !important;
-        box-shadow: 4px 0 20px rgba(10, 85, 64, 0.3) !important;
+        background: rgba(8, 18, 12, 0.92) !important;
+        border-right: 1px solid rgba(61, 255, 154, 0.18) !important;
+        box-shadow: 4px 0 32px rgba(0,0,0,0.55) !important;
+        backdrop-filter: blur(28px) !important;
+        -webkit-backdrop-filter: blur(28px) !important;
+        border-top: 2px solid var(--orange-bright);
+        border-left: 1px solid var(--border-green);
+        border-right: 1px solid rgba(255,255,255,0.08);
+        border-bottom: 1px solid rgba(255,255,255,0.06);
     }
 
-    /* brand block */
+    /* Transparent inner wrappers */
+    section[data-testid="stSidebar"] > div,
+    section[data-testid="stSidebar"] > div > div,
+    section[data-testid="stSidebar"] section,
+    section[data-testid="stSidebar"] [data-testid="stSidebarContent"],
+    section[data-testid="stSidebar"] .stMarkdown,
+    section[data-testid="stSidebar"] .stMarkdown div,
+    section[data-testid="stSidebar"] .element-container,
+    section[data-testid="stSidebar"] [data-testid="stVerticalBlock"] {
+        background: transparent !important;
+        background-color: transparent !important;
+    }
+
+    /* Orange top accent bar on sidebar (mirrors login card) */
+    section[data-testid="stSidebar"]::before {
+        content: '' !important;
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        height: 3px !important;
+        background: linear-gradient(90deg, #FF8C42, #E06820) !important;
+        z-index: 10 !important;
+        pointer-events: none !important;
+    }
+
+    /* ── Brand block (ENLARGED) ── */
     .brand-block {
-        border-bottom: 0.5px solid rgba(255,255,255,0.2) !important;
-    }
-    .brand-name {
-        color: #FFFFFF !important;
-        font-weight: 600 !important;
-    }
-    .brand-sub {
-        color: rgba(255,255,255,0.7) !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 14px !important;
+        padding: 24px 16px 20px !important;
+        border-bottom: 1px solid rgba(61, 255, 154, 0.18) !important;
+        margin-bottom: 10px !important;
     }
 
-    /* brand logo border */
     .brand-logo {
-        border: 2px solid rgba(255,255,255,0.3) !important;
+        width: 60px !important;
+        height: 60px !important;
+        border-radius: 14px !important;
+        overflow: hidden !important;
+        flex-shrink: 0 !important;
+        border: 2px solid rgba(61, 255, 154, 0.35) !important;
+        background: rgba(8, 25, 15, 0.8) !important;
     }
 
-    /* nav section label */
-    section[data-testid="stSidebar"] .menu-title,
-    section[data-testid="stSidebar"] [style*="font-size:10px"] {
-        color: rgba(255,255,255,0.6) !important;
-        font-weight: 600 !important;
+    .brand-logo img {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: contain !important;
     }
 
-    /* nav items — default */
-    section[data-testid="stSidebar"] .nav-link {
-        color: rgba(255,255,255,0.85) !important;
-        border-radius: 8px !important;
-    }
-    section[data-testid="stSidebar"] .nav-link:hover {
-        background: rgba(255,255,255,0.15) !important;
-        color: #FFFFFF !important;
-    }
-
-    /* nav icons — default */
-    section[data-testid="stSidebar"] .nav-link svg,
-    section[data-testid="stSidebar"] .nav-link i {
-        color: rgba(255,255,255,0.7) !important;
+    .brand-tile {
+        width: 60px !important;
+        height: 60px !important;
+        border-radius: 14px !important;
+        background: rgba(61, 255, 154, 0.12) !important;
+        border: 2px solid rgba(61, 255, 154, 0.35) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        flex-shrink: 0 !important;
     }
 
-    /* nav active item */
-    section[data-testid="stSidebar"] .nav-link-selected {
-        background: rgba(255,255,255,0.22) !important;
-        color: #FFFFFF !important;
-        font-weight: 600 !important;
-        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.3) !important;
+    .brand-tile i {
+        font-size: 28px !important;
+        color: #3DFF9A !important;
     }
 
-    /* active icon */
-    section[data-testid="stSidebar"] .nav-link-selected svg,
-    section[data-testid="stSidebar"] .nav-link-selected i {
-        color: #FFFFFF !important;
+    .brand-name {
+        font-size: 20px !important;
+        font-weight: 800 !important;
+        color: #3DFF9A !important;
+        line-height: 1.35 !important;
+        text-shadow: 0 0 22px rgba(61, 255, 154, 0.45) !important;
+        letter-spacing: -0.2px !important;
     }
 
-    /* system section label */
-    section[data-testid="stSidebar"] hr {
-        border-top: 0.5px solid rgba(255,255,255,0.2) !important;
+    .brand-sub {
+        font-size: 11px !important;
+        color: rgba(255, 140, 66, 0.85) !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.12em !important;
+        text-transform: uppercase !important;
+        margin-top: 4px !important;
     }
 
-    /* settings item */
-    section[data-testid="stSidebar"] div[style*="color:#5F5E5A"] {
-        color: rgba(255,255,255,0.85) !important;
-    }
-    section[data-testid="stSidebar"] i[style*="color:#B4B2A9"] {
-        color: rgba(255,255,255,0.6) !important;
-    }
-
-    /* profile section */
-    section[data-testid="stSidebar"] div[style*="color:#1a1a1a"] {
-        color: #FFFFFF !important;
-    }
-    section[data-testid="stSidebar"] div[style*="color:#888780"] {
-        color: rgba(255,255,255,0.65) !important;
-    }
-
-    /* avatar */
-    section[data-testid="stSidebar"] div[style*="border-radius:50%"] {
-        background: rgba(255,255,255,0.2) !important;
-        color: #FFFFFF !important;
-        border: 1.5px solid rgba(255,255,255,0.4) !important;
-    }
-
-    /* role badge */
-    section[data-testid="stSidebar"] div[style*="border-radius:20px"] {
-        background: rgba(255,255,255,0.2) !important;
-        color: #FFFFFF !important;
-    }
-
-    /* logout button */
-    section[data-testid="stSidebar"] .stButton > button {
-        background: rgba(255,255,255,0.12) !important;
-        color: #FFFFFF !important;
-        border: 0.5px solid rgba(255,255,255,0.3) !important;
-        border-radius: 8px !important;
-    }
-    section[data-testid="stSidebar"] .stButton > button:hover {
-        background: rgba(220, 53, 53, 0.4) !important;
-        border-color: rgba(255,100,100,0.5) !important;
-    }
-
-    /* menu title text */
+    /* ── All sidebar text ── */
     section[data-testid="stSidebar"] p,
     section[data-testid="stSidebar"] span,
-    section[data-testid="stSidebar"] small {
-        color: rgba(255,255,255,0.75) !important;
+    section[data-testid="stSidebar"] small,
+    section[data-testid="stSidebar"] div,
+    section[data-testid="stSidebar"] label {
+        color: rgba(200, 255, 230, 0.80) !important;
     }
-    /* ── MAIN CONTENT AREA ── */
+
+    /* ── Nav menu option_menu styles ── */
+    section[data-testid="stSidebar"] ul,
+    section[data-testid="stSidebar"] nav {
+        background: transparent !important;
+    }
+
+    /* option_menu nav links */
+    section[data-testid="stSidebar"] .nav-link {
+        color: rgba(200, 255, 230, 0.65) !important;
+        border-radius: 10px !important;
+        padding: 9px 12px !important;
+        margin: 2px 4px !important;
+        font-size: 13px !important;
+        transition: all 0.2s ease !important;
+        background: transparent !important;
+        border: none !important;
+    }
+
+    section[data-testid="stSidebar"] .nav-link:hover {
+        background: rgba(61, 255, 154, 0.07) !important;
+        color: rgba(200, 255, 230, 0.95) !important;
+    }
+
+    section[data-testid="stSidebar"] .nav-link-selected {
+        background: rgba(255, 140, 66, 0.14) !important;
+        color: #FF8C42 !important;
+        font-weight: 600 !important;
+        border-left: 3px solid #FF8C42 !important;
+        border-radius: 0 10px 10px 0 !important;
+        box-shadow: inset 0 1px 0 rgba(255, 140, 66, 0.15) !important;
+    }
+
+    section[data-testid="stSidebar"] .nav-link-selected .icon {
+        color: #FF8C42 !important;
+    }
+
+    section[data-testid="stSidebar"] .nav-link .icon {
+        color: rgba(200, 255, 230, 0.55) !important;
+    }
+
+    /* menu-title label */
+    section[data-testid="stSidebar"] .menu-title {
+        color: rgba(61, 255, 154, 0.45) !important;
+        font-size: 10px !important;
+        letter-spacing: 0.14em !important;
+        text-transform: uppercase !important;
+        font-weight: 700 !important;
+        padding: 14px 14px 6px !important;
+    }
+
+    /* ── Divider ── */
+    section[data-testid="stSidebar"] hr {
+        border: none !important;
+        border-top: 1px solid rgba(61, 255, 154, 0.12) !important;
+        margin: 10px 14px !important;
+    }
+
+    /* ── Profile card at bottom ── */
+    .sidebar-profile {
+        background: rgba(8, 25, 15, 0.55) !important;
+        border: 1px solid rgba(61, 255, 154, 0.18) !important;
+        border-radius: 12px !important;
+        margin: 6px 10px !important;
+        padding: 10px 12px !important;
+    }
+
+    /* Username in profile */
+    .sidebar-username {
+        font-size: 12px !important;
+        font-weight: 600 !important;
+        color: rgba(200, 255, 230, 0.95) !important;
+    }
+
+    /* ── Role badge — VISIBLE ── */
+    .role-badge {
+        display: inline-flex !important;
+        align-items: center !important;
+        margin-top: 3px !important;
+        font-size: 9px !important;
+        font-weight: 700 !important;
+        padding: 2px 9px !important;
+        border-radius: 20px !important;
+        letter-spacing: 0.07em !important;
+        text-transform: uppercase !important;
+    }
+
+    .role-badge.admin {
+        background: rgba(61, 255, 154, 0.15) !important;
+        border: 1px solid rgba(61, 255, 154, 0.35) !important;
+        color: #3DFF9A !important;
+    }
+
+    .role-badge.viewer {
+        background: rgba(255, 140, 66, 0.15) !important;
+        border: 1px solid rgba(255, 140, 66, 0.35) !important;
+        color: #FF8C42 !important;
+    }
+
+    /* Avatar initials circle */
+    .sidebar-avatar {
+        width: 32px !important;
+        height: 32px !important;
+        border-radius: 50% !important;
+        background: rgba(255, 140, 66, 0.2) !important;
+        border: 1px solid rgba(255, 140, 66, 0.4) !important;
+        color: #FF8C42 !important;
+        font-size: 11px !important;
+        font-weight: 700 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        flex-shrink: 0 !important;
+    }
+
+    /* ── LOGOUT BUTTON — light green hover shadow ── */
+    section[data-testid="stSidebar"] .stButton > button {
+        background: var(--green-deep) !important;
+        color: #ffffff !important;
+        border: none !important;
+        border-radius: 10px !important;
+        font-size: 13px !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.07em !important;
+        text-transform: uppercase !important;
+        padding: 10px 14px !important;
+        width: calc(100% - 20px) !important;
+        margin: 4px 10px 12px !important;
+        cursor: pointer !important;
+        box-shadow: 0 4px 20px rgba(224, 104, 32, 0.4), 0 0 0 1px rgba(255, 140, 66, 0.2) !important;
+        transition: box-shadow 0.2s, transform 0.15s !important;
+    }
+
+    section[data-testid="stSidebar"] .stButton > button:hover {
+        box-shadow: 0 8px 32px rgba(29, 184, 106, 0.62), 0 0 0 1px rgba(61, 255, 154, 0.45) !important;
+        transform: translateY(-2px) !important;
+        color: #ffffff !important;
+    }
+
+    /* Sidebar collapse arrow */
+    button[data-testid="baseButton-headerNoPadding"] svg {
+        color: rgba(61, 255, 154, 0.55) !important;
+        fill: rgba(61, 255, 154, 0.55) !important;
+    }
+
+    button[data-testid="baseButton-headerNoPadding"]:hover svg {
+        color: #3DFF9A !important;
+    }
+
+    /* ════════════════════════════════════════
+       MAIN CONTENT — WHITE BACKGROUND (unchanged)
+    ════════════════════════════════════════ */
+
+    :root {
+        --dash-bg:           #FFFFFF;
+        --dash-surface:      rgba(248, 249, 250, 0.95);
+        --dash-surface-hov:  #FFFFFF;
+        --dash-border:       rgba(224, 224, 216, 0.80);
+        --dash-text-primary: #1C1A14;
+        --dash-text-second:  #3A3526;
+        --dash-text-muted:   #9A927E;
+        --dash-green:        #1D9E75;
+        --dash-green-dark:   #0F6E56;
+        --dash-amber:        #E8A020;
+    }
+
     .main .block-container {
         padding: 1.5rem 2rem 2rem !important;
         max-width: 1200px !important;
     }
 
-    /* ── HEADINGS ── */
-    h1 { font-size: 20px !important; font-weight: 500 !important; color: #1a1a1a !important; }
-    h2 { font-size: 16px !important; font-weight: 500 !important; color: #1a1a1a !important; }
-    h3 { font-size: 14px !important; font-weight: 500 !important; color: #1a1a1a !important; }
-
-    /* ── METRIC CARDS (st.metric) ── */
-    [data-testid="stMetric"] {
-        background: #FFFFFF !important;
-        border: 0.5px solid #E0E0D8 !important;
-        border-radius: 10px !important;
-        padding: 14px 18px !important;
+    h1 {
+        font-size: 20px !important;
+        font-weight: 700 !important;
+        color: var(--dash-text-primary) !important;
     }
 
-    [data-testid="stMetricLabel"] {
-        font-size: 11px !important;
-        font-weight: 500 !important;
-        color: #888780 !important;
-        text-transform: uppercase !important;
-        letter-spacing: 0.06em !important;
+    h2 {
+        font-size: 16px !important;
+        font-weight: 600 !important;
+        color: var(--dash-text-primary) !important;
     }
 
-    [data-testid="stMetricValue"] {
-        font-size: 26px !important;
-        font-weight: 500 !important;
-        color: #1a1a1a !important;
-    }
-
-    [data-testid="stMetricDelta"] {
-        font-size: 12px !important;
-        color: var(--teal-400) !important;
-    }
-
-    /* ── BUTTONS ── */
+    /* ── MAIN CONTENT BUTTONS — orange primary ── */
     .stButton > button {
-        background-color: transparent !important;
-        color: var(--teal-600) !important;
-        border: 1px solid var(--teal-400) !important;
-        border-radius: 8px !important;
+        background: linear-gradient(135deg, #E06820 0%, #8B3A0A 100%) !important;
+        color: #ffffff !important;
+        border: none !important;
+        border-radius: 9px !important;
         font-size: 13px !important;
-        font-weight: 500 !important;
-        font-family: 'DM Sans', sans-serif !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.06em !important;
+        padding: 9px 16px !important;
+        cursor: pointer !important;
+        box-shadow: 0 3px 16px rgba(224, 104, 32, 0.38), 0 0 0 1px rgba(255, 140, 66, 0.18) !important;
+        transition: box-shadow 0.2s, transform 0.15s !important;
     }
 
-    
+    .stButton > button:hover {
+        box-shadow: 0 6px 24px rgba(224, 104, 32, 0.55), 0 0 0 1px rgba(255, 140, 66, 0.4) !important;
+        transform: translateY(-1px) !important;
+        color: #ffffff !important;
+    }
 
     .stButton > button:active {
-        background-color: transparent !important;
-        transform: scale(0.98) !important;
+        transform: translateY(0) !important;
     }
 
-    /* secondary/outline buttons — any button whose label starts with ⬇ or Download */
+    /* Download buttons — green secondary */
     .stDownloadButton > button {
-        background-color: transparent !important;
-        color: var(--teal-600) !important;
-        border: 1px solid var(--teal-400) !important;
-        border-radius: 8px !important;
-        font-size: 13px !important;
-        font-weight: 500 !important;
-        font-family: 'DM Sans', sans-serif !important;
-    }
-
-    .stDownloadButton > button:hover {
-        background-color: var(--teal-50) !important;
-    }
-
-    /* ── TEXT INPUTS ── */
-    .stTextInput > div > div > input {
-        background: #FFFFFF !important;
-        border: 0.5px solid #D3D1C7 !important;
-        border-radius: 8px !important;
-        font-size: 13px !important;
-        color: #1a1a1a !important;
-        font-family: 'DM Sans', sans-serif !important;
-        padding: 8px 12px !important;
-    }
-
-    .stTextInput > div > div > input:focus {
-        border-color: var(--teal-400) !important;
-        box-shadow: 0 0 0 2px rgba(29, 158, 117, 0.15) !important;
-    }
-
-    .stTextInput > label {
-        font-size: 12px !important;
-        font-weight: 500 !important;
-        color: #5F5E5A !important;
-    }
-
-    /* ── SELECTBOX ── */
-    .stSelectbox > div > div {
-        background: #FFFFFF !important;
-        border: 0.5px solid #D3D1C7 !important;
-        border-radius: 8px !important;
-        font-size: 13px !important;
-        font-family: 'DM Sans', sans-serif !important;
-    }
-
-    .stSelectbox > div > div:focus-within {
-        border-color: var(--teal-400) !important;
-        box-shadow: 0 0 0 2px rgba(29, 158, 117, 0.15) !important;
-    }
-
-    .stSelectbox > label {
-        font-size: 12px !important;
-        font-weight: 500 !important;
-        color: #5F5E5A !important;
-    }
-
-    /* ── FILE UPLOADER ── */
-    [data-testid="stFileUploader"] {
-        background: #FFFFFF !important;
-        border: 1px dashed #9FE1CB !important;
-        border-radius: 10px !important;
-        padding: 1rem !important;
-    }
-
-    [data-testid="stFileUploader"]:hover {
-        border-color: var(--teal-400) !important;
-        background: var(--teal-50) !important;
-    }
-
-    /* ── DATAFRAME / TABLE ── */
-    [data-testid="stDataFrame"] {
-        border: 0.5px solid #E0E0D8 !important;
-        border-radius: 10px !important;
-        overflow: hidden !important;
-        background: #FFFFFF !important;
-    }
-
-    [data-testid="stDataFrame"] th {
-        background-color: #F7F8F6 !important;
-        color: #888780 !important;
-        font-size: 11px !important;
-        font-weight: 500 !important;
-        text-transform: uppercase !important;
-        letter-spacing: 0.05em !important;
-        border-bottom: 0.5px solid #E0E0D8 !important;
-    }
-
-    [data-testid="stDataFrame"] td {
-        font-size: 13px !important;
-        color: #1a1a1a !important;
-        border-bottom: 0.5px solid #F1EFE8 !important;
-    }
-
-    [data-testid="stDataFrame"] tr:hover td {
-        background-color: var(--teal-50) !important;
-    }
-
-    /* ── DATA EDITOR ── */
-    [data-testid="stDataEditor"] {
-        border: 0.5px solid #E0E0D8 !important;
-        border-radius: 10px !important;
-        overflow: hidden !important;
-    }
-
-    /* ── FORMS ── */
-    [data-testid="stForm"] {
-        background: #FFFFFF !important;
-        border: 0.5px solid #E0E0D8 !important;
-        border-radius: 12px !important;
-        padding: 1.25rem !important;
-    }
-
-    /* ── ALERTS ── */
-    .stSuccess {
-        background-color: var(--teal-50) !important;
-        border-left: 3px solid var(--teal-400) !important;
-        color: var(--teal-800) !important;
-        border-radius: 0 8px 8px 0 !important;
-        font-size: 13px !important;
-    }
-
-    .stWarning {
-        background-color: var(--amber-50) !important;
-        border-left: 3px solid #EF9F27 !important;
-        color: var(--amber-800) !important;
-        border-radius: 0 8px 8px 0 !important;
-        font-size: 13px !important;
-    }
-
-    .stError {
-        border-left: 3px solid #E24B4A !important;
-        border-radius: 0 8px 8px 0 !important;
-        font-size: 13px !important;
-    }
-
-    .stInfo {
-        background-color: #E6F1FB !important;
-        border-left: 3px solid #378ADD !important;
-        border-radius: 0 8px 8px 0 !important;
-        font-size: 13px !important;
-    }
-
-    /* ── DIVIDER ── */
-    hr {
-        border: none !important;
-        border-top: 0.5px solid #E0E0D8 !important;
-        margin: 1rem 0 !important;
-    }
-
-    /* ── CHECKBOX ── */
-    .stCheckbox > label {
-        font-size: 13px !important;
-        color: #5F5E5A !important;
-    }
-
-    /* ── NUMBER INPUT ── */
-    .stNumberInput > div > div > input {
-        border: 0.5px solid #D3D1C7 !important;
-        border-radius: 8px !important;
-        font-size: 13px !important;
-        font-family: 'DM Sans', sans-serif !important;
-    }
-
-    .stNumberInput > div > div > input:focus {
-        border-color: var(--teal-400) !important;
-        box-shadow: 0 0 0 2px rgba(29, 158, 117, 0.15) !important;
-    }
-
-    /* ── SPINNER / TOAST ── */
-    [data-testid="stToast"] {
-        background: #1a1a1a !important;
-        color: #FFFFFF !important;
-        border-radius: 8px !important;
-        font-size: 13px !important;
-    }
-
-    /* ── SCROLLBAR ── */
-    ::-webkit-scrollbar { width: 5px; height: 5px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #D3D1C7; border-radius: 10px; }
-    ::-webkit-scrollbar-thumb:hover { background: #B4B2A9; }
-
-    /* ── LINE CHART (st.line_chart) ── */
-    [data-testid="stArrowVegaLiteChart"] canvas {
-        border-radius: 10px !important;
-    }
-
-    /* ── CAPTION / SMALL TEXT ── */
-    .stCaption, small {
-        font-size: 11px !important;
-        color: #888780 !important;
-    }
-
-    /* ── MARKDOWN ── */
-    .stMarkdown p {
-        font-size: 13px !important;
-        color: #3a3a3a !important;
-        line-height: 1.6 !important;
-    }
-    /* ── DASHBOARD VIEW BUTTONS (ghost style) ── */
-    [data-testid="stButton"][key^="btn_"] > button,
-    div[data-testid="column"] .stButton > button {
-        background-color: transparent !important;
-        color: #1D9E75 !important;
-        border: 0.5px solid #9FE1CB !important;
-        font-size: 12px !important;
-        padding: 5px 10px !important;
-        border-radius: 0 0 8px 8px !important;
-    }
-
-    div[data-testid="column"] .stButton > button:hover {
-        background-color: #E1F5EE !important;
-    }
-    /* ── LOGOUT BUTTON ── */
-    [data-testid="stButton"][key="logout_btn"] > button,
-    section[data-testid="stSidebar"] .stButton > button {
-        background: transparent !important;
-        color: #E24B4A !important;
-        border: 0.5px solid #F09595 !important;
-        font-size: 12px !important;
-        padding: 6px !important;
-    }
-    section[data-testid="stSidebar"] .stButton > button:hover {
-        background: #FCEBEB !important;
-    }
-
-    /* ── SIDEBAR ENHANCED COLOUR ── */
-
-    /* sidebar background — soft teal tint instead of flat white */
-    section[data-testid="stSidebar"] {
-        background: linear-gradient(160deg, #F0FAF6 0%, #FFFFFF 60%) !important;
-        border-right: 0.5px solid #C8EDE0 !important;
-    }
-
-    /* brand tile stronger */
-    .brand-tile {
-        background: #1D9E75 !important;
-    }
-    .brand-tile i {
-        color: #FFFFFF !important;
-    }
-
-    /* nav active item — deeper green */
-    section[data-testid="stSidebar"] [aria-selected="true"],
-    section[data-testid="stSidebar"] .nav-link-selected {
-        background-color: #1D9E75 !important;
-        color: #FFFFFF !important;
-        font-weight: 500 !important;
-    }
-
-    /* active icon white */
-    section[data-testid="stSidebar"] [aria-selected="true"] svg,
-    section[data-testid="stSidebar"] .nav-link-selected svg {
-        color: #FFFFFF !important;
-        fill: #FFFFFF !important;
-    }
-
-    /* inactive nav items slightly darker */
-    section[data-testid="stSidebar"] .nav-link {
-        color: #3D3D3A !important;
-    }
-
-    section[data-testid="stSidebar"] .nav-link:hover {
-        background-color: #D4F0E5 !important;
+        background: rgba(29, 158, 117, 0.10) !important;
         color: #0F6E56 !important;
-    }
-
-    /* avatar circle — solid teal */
-    .profile-row .avatar,
-    section[data-testid="stSidebar"] .avatar {
-        background: #1D9E75 !important;
-        color: #FFFFFF !important;
-    }
-
-    /* logout button — tinted red */
-    section[data-testid="stSidebar"] .stButton > button {
-        background: #FCEBEB !important;
-        color: #C0392B !important;
-        border: 0.5px solid #F09595 !important;
-    }
-
-    section[data-testid="stSidebar"] .stButton > button:hover {
-        background: #F5C6C6 !important;
-        color: #922B21 !important;
-    }
-
-    /* section labels — stronger */
-    section[data-testid="stSidebar"] small,
-    section[data-testid="stSidebar"] .menu-title {
-        color: #2E8B6A !important;
+        border: 1px solid rgba(29, 158, 117, 0.35) !important;
+        border-radius: 9px !important;
         font-weight: 600 !important;
+        font-size: 12px !important;
+        box-shadow: none !important;
+        letter-spacing: 0.04em !important;
+        transition: background 0.2s, border-color 0.2s !important;
     }
 
-    /* divider lines — teal tint */
-    section[data-testid="stSidebar"] hr {
-        border-top: 0.5px solid #C8EDE0 !important;
-    }
-
-    /* system settings item */
-    section[data-testid="stSidebar"] .nav-item {
-        color: #3D3D3A !important;
-    }
-    /* ── AMBER ACCENT THROUGHOUT ── */
-
-    /* ── PAGE BACKGROUND — subtle warm tint ── */
-    .stApp {
-        background-color: #F7F6F2 !important;
-    }
-
-    /* ── SIDEBAR — warm gradient ── */
-    section[data-testid="stSidebar"] {
-        background: linear-gradient(170deg, #F0FAF6 0%, #FDF8F0 100%) !important;
-        border-right: 0.5px solid #E8E4D8 !important;
-    }
-
-    /* ── METRIC CARDS — amber active state ── */
-    .metric-card.active {
-        border: 1.5px solid #E8A020 !important;
-        background: linear-gradient(135deg, #FDF3E0 0%, #FEF9F0 100%) !important;
-    }
-    .metric-card.active .metric-card-value {
-        color: #B86E00 !important;
-    }
-
-    /* ── TOP SEARCH BAR — warm border ── */
-    .search-card {
-        border: 0.5px solid #E8E0CC !important;
-        background: linear-gradient(135deg, #FFFFFF 0%, #FDFAF4 100%) !important;
-    }
-
-    /* ── DATAFRAME HEADER — warm tint ── */
-    [data-testid="stDataFrame"] th {
-        background-color: #FDF8F0 !important;
-    }
-
-    /* ── CARDS — warm white ── */
-    [data-testid="stForm"],
-    .stDataFrame,
-    [data-testid="stDataEditor"] {
-        background: #FDFCF8 !important;
-    }
-
-    /* ── DIVIDERS — warm tone ── */
-    hr {
-        border-top: 0.5px solid #E8E0CC !important;
-    }
-
-    /* ── DOWNLOAD BUTTONS — amber outline ── */
-    .stDownloadButton > button {
-        background-color: transparent !important;
-        color: #B86E00 !important;
-        border: 1px solid #E8A020 !important;
-        border-radius: 8px !important;
-    }
     .stDownloadButton > button:hover {
-        background-color: #FDF3E0 !important;
+        background: rgba(29, 158, 117, 0.18) !important;
+        border-color: rgba(29, 158, 117, 0.55) !important;
+        transform: translateY(-1px) !important;
+        box-shadow: none !important;
     }
 
-    /* ── SELECTBOX FOCUS — amber ring ── */
-    .stSelectbox > div > div:focus-within {
-        border-color: #E8A020 !important;
-        box-shadow: 0 0 0 2px rgba(232,160,32,0.15) !important;
+    /* ── Metric cards ── */
+    .metric-card {
+        background: var(--dash-surface) !important;
+        border: 0.5px solid var(--dash-border) !important;
+        border-radius: 16px !important;
+        padding: 16px !important;
+        transition: all 0.2s ease !important;
     }
 
-    /* ── ANALYTICS STAT CARDS — amber card ── */
-    [data-testid="stMarkdownContainer"] div[style*="background:#FAEEDA"] {
-        background: linear-gradient(135deg, #FDF3E0, #FEF9F0) !important;
+    .metric-card:hover {
+        transform: translateY(-2px) !important;
+        background: var(--dash-surface-hov) !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05) !important;
     }
 
-    /* ── SIDEBAR NAV HOVER — warm green ── */
-    section[data-testid="stSidebar"] .nav-link:hover {
-        background: linear-gradient(135deg, #E1F5EE, #FDF8F0) !important;
+    .metric-card.active {
+        background: rgba(255, 140, 66, 0.07) !important;
+        border-color: rgba(224, 104, 32, 0.40) !important;
     }
 
-    /* ── SECTION HEADERS — amber dot accent ── */
-    .stMarkdown h1::before,
-    .stMarkdown h2::before,
-    .stMarkdown h3::before {
-        content: '';
-        display: inline-block;
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        background: #E8A020;
-        margin-right: 8px;
-        vertical-align: middle;
-        margin-bottom: 2px;
-    }
-
-    /* ── TOAST NOTIFICATIONS — amber ── */
-    [data-testid="stToast"] {
-        background: #1a1a1a !important;
-        border-left: 3px solid #E8A020 !important;
-    }
-
-    /* ── SUCCESS ALERTS — keep teal ── */
-    .stSuccess {
-        background: linear-gradient(135deg, #E1F5EE, #F0FAF6) !important;
-        border-left: 3px solid #1D9E75 !important;
-    }
-
-    /* ── WARNING ALERTS — amber ── */
-    .stWarning {
-        background: linear-gradient(135deg, #FDF3E0, #FEF9F0) !important;
-        border-left: 3px solid #E8A020 !important;
-        color: #854F0B !important;
-    }
-
-    /* ── INFO ALERTS — warm blue ── */
-    .stInfo {
-        background: linear-gradient(135deg, #EEF4FC, #F5F8FE) !important;
-        border-left: 3px solid #378ADD !important;
-    }
-
-    /* ── SCROLLBAR — warm tone ── */
-    ::-webkit-scrollbar-thumb {
-        background: #D4C9A8 !important;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-        background: #C4B48A !important;
-    }
-
-    /* ── LOGIN PAGE GRADIENT — include amber ── */
-    /* this targets the teal gradient and adds warmth at the bottom */
-    .stApp[data-testid="stAppViewContainer"] {
-        background: linear-gradient(
-            160deg,
-            #0A5540 0%,
-            #1D9E75 45%,
-            #5DCAA5 75%,
-            #A8D5A2 100%
-        ) !important;
-    }
-                /* ── GLOBAL FONT SIZE INCREASE ── */
-
-    /* base font */
-    html, body, .stApp, [class*="css"] {
-        font-size: 15px !important;
-    }
-
-    /* general text */
-    p, div, span, label, td, th, li {
-        font-size: 15px !important;
-    }
-
-    /* markdown text */
-    .stMarkdown p {
-        font-size: 15px !important;
-    }
-
-    /* inputs */
-    .stTextInput > div > div > input {
-        font-size: 15px !important;
-    }
-
-    /* selectbox */
-    .stSelectbox > div > div {
-        font-size: 15px !important;
-    }
-
-    /* number input */
-    .stNumberInput > div > div > input {
-        font-size: 15px !important;
-    }
-
-    /* buttons */
-    .stButton > button {
-        font-size: 14px !important;
-    }
-
-    .stDownloadButton > button {
-        font-size: 14px !important;
-    }
-
-    .stFormSubmitButton > button {
-        font-size: 15px !important;
-    }
-
-    /* dataframe */
-    [data-testid="stDataFrame"] td {
-        font-size: 14px !important;
-    }
-
-    [data-testid="stDataFrame"] th {
-        font-size: 12px !important;
-    }
-
-    /* sidebar nav */
-    section[data-testid="stSidebar"] .nav-link {
-        font-size: 14px !important;
-    }
-
-    /* captions */
-    .stCaption, small {
-        font-size: 12px !important;
-    }
-
-    /* metric cards */
     .metric-card-label {
-        font-size: 12px !important;
+        font-size: 10px !important;
+        font-weight: 700 !important;
+        color: var(--dash-text-muted) !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.09em !important;
     }
 
     .metric-card-value {
-        font-size: 30px !important;
+        font-size: 26px !important;
+        font-weight: 700 !important;
+        color: var(--dash-text-primary) !important;
     }
 
-    /* alerts */
-    .stSuccess, .stWarning, .stError, .stInfo {
-        font-size: 14px !important;
-    }
-
-    /* checkbox */
-    .stCheckbox > label {
-        font-size: 14px !important;
-    }
-
-    /* table cells in custom HTML tables */
-    .grad-table td, .analytics-table td, .user-table td {
-        font-size: 13px !important;
-    }
-
-    .grad-table th, .analytics-table th, .user-table th {
+    .metric-card-hint {
         font-size: 11px !important;
-    }
-    /* ── SIDEBAR TEXT OVERRIDES — black items ── */
-
-    /* ACC Archives brand name */
-    .brand-name {
-        color: #1a1a1a !important;
-        font-weight: 600 !important;
-    }
-    .brand-sub {
-        color: #5F5E5A !important;
+        color: var(--dash-text-muted) !important;
     }
 
-    /* logout button — dark text */
-    section[data-testid="stSidebar"] .stButton > button {
-        background: rgba(255,255,255,0.9) !important;
-        color: #1a1a1a !important;
-        border: 0.5px solid rgba(255,255,255,0.5) !important;
-        border-radius: 8px !important;
-    }
-    section[data-testid="stSidebar"] .stButton > button:hover {
-        background: #FCEBEB !important;
-        color: #C0392B !important;
-        border-color: #F09595 !important;
+    /* Icon boxes */
+    .mc-icon {
+        width: 40px !important;
+        height: 40px !important;
+        border-radius: 11px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        margin-bottom: 12px !important;
     }
 
+    .mc-icon i { font-size: 20px !important; }
 
-    /* the sidebar collapse arrow button */
-    button[data-testid="baseButton-headerNoPadding"] svg {
-        color: #1a1a1a !important;
-        fill: #1a1a1a !important;
-        stroke: #1a1a1a !important;
-    }
+    .mc-icon.teal  { background: rgba(29,158,117,0.10) !important; color: #0F9E6A !important; }
+    .mc-icon.amber { background: rgba(232,160,32,0.10) !important; color: #C07A00 !important; }
+    .mc-icon.blue  { background: rgba(55,138,221,0.10) !important; color: #1E78D4 !important; }
+    .mc-icon.red   { background: rgba(226,75,74,0.10)  !important; color: #C0392B !important; }
 
-    /* username text in profile */
-    section[data-testid="stSidebar"] div[style*="font-weight:500"][style*="color"] {
-        color: #1a1a1a !important;
-    }
-    /* ── LOGOUT BUTTON — reset to original ── */
-    section[data-testid="stSidebar"] .stButton > button {
-        background: #FCEBEB !important;
-        color: #C0392B !important;
-        border: 0.5px solid #F09595 !important;
-        border-radius: 8px !important;
-        font-size: 12px !important;
-        padding: 6px !important;
+    /* ── DASHBOARD metric card active state (button clicked) ── */
+    .metric-card.active .metric-card-value {
+        color: #E06820 !important;
     }
 
-    section[data-testid="stSidebar"] .stButton > button:hover {
-        background: #F5C6C6 !important;
-        color: #922B21 !important;
+    /* Tables */
+    [data-testid="stDataFrame"],
+    [data-testid="stDataEditor"] {
+        background: #FFFFFF !important;
+        border: 1px solid var(--dash-border) !important;
+        border-radius: 16px !important;
     }
 
-    section[data-testid="stSidebar"] .stButton > button * {
-        color: #C0392B !important;
+    [data-testid="stDataFrame"] th {
+        background: #F8F9FA !important;
+        color: var(--dash-text-muted) !important;
     }
-                
-        </style>
+
+    /* Forms */
+    [data-testid="stForm"] {
+        background: #FFFFFF !important;
+        border: 1px solid var(--dash-border) !important;
+        border-radius: 16px !important;
+        padding: 1.25rem !important;
+    }
+
+    /* Input fields */
+    .stTextInput > div > div > input,
+    .stSelectbox > div > div,
+    .stNumberInput > div > div > input {
+        background: #FFFFFF !important;
+        border: 1px solid var(--dash-border) !important;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 3px; height: 3px; }
+    ::-webkit-scrollbar-track { background: #F1F1F1; }
+    ::-webkit-scrollbar-thumb { background: #D9D0C0; border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: #C8BC9E; }
+
+    </style>
     """, unsafe_allow_html=True)
