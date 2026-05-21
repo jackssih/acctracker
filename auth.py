@@ -476,5 +476,5 @@ def login():
 </body>
 </html>"""
 
-    components.html(html_content, height=800, scrolling=False)
+     st.iframe(html_content, height=800, scrolling=False)
     return False
