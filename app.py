@@ -10,6 +10,11 @@ from user_management import render_user_management
 from settings import render_settings
 import base64
 from pathlib import Path
+import re
+
+def natural_sort_key(s):
+    return [int(t) if t.isdigit() else t.lower()
+            for t in re.split(r'(\d+)', s)]
 def is_admin():
     return st.session_state.get("role") == "admin"
 
@@ -27,7 +32,7 @@ inject_theme()
 if not login():
     st.stop()
 
-# SIDEBAR NAVIGATION
+# BAR NAVIGATION
 with st.sidebar:
     # ── BRAND + LOGO ──
     logo_path = Path("logo one.jpg")
@@ -83,7 +88,7 @@ with st.sidebar:
             flex-shrink: 0;
         }
         .brand-tile i { font-size: 18px; color: #FFFFFF; }
-        .brand-name { font-size: 13px; font-weight: 500; color: #1a1a1a; }
+        .brand-name { font-size: 18px; font-weight: 500; color: #1a1a1a; }
         .brand-sub  { font-size: 10px; color: #888780; }
         </style>
         <link rel="stylesheet"
@@ -115,76 +120,73 @@ with st.sidebar:
         "gear",
     ],
     default_index=0,
-    styles={
-        "container": {
-            "padding": "0 10px",
-            "background-color": "transparent",
-        },
-        "menu-title": {
-            "font-size": "10px",
-            "font-weight": "600",
-            "color": "#1C180A",        # ← darker so it's visible
-            "text-transform": "uppercase",
-            "letter-spacing": "0.08em",
-            "padding": "0 6px",
-            "margin-bottom": "4px",
-        },
-        "icon": {
-            "font-size": "16px",
-            "color": "#161406",
-        },
-        "nav-link": {
-            "font-size": "13px",
-            "color": "#9C8733",
-            "border-radius": "8px",
-            "padding": "8px 10px",
-            "margin-bottom": "1px",
-        },
-        "nav-link-selected": {
-            "background-color": "#3FA984",
-            "color": "#0F6E56",
-            "font-weight": "500",
-        },
-        "icon-selected": {
-            "color": "#0A6B4C",
-        },
-    }
+styles={
+    "container": {
+        "padding": "0 10px",
+        "background-color": "#F5F5F0",
+        "border-radius": "20px",
+        "transition": "all 0.3s ease",
+        "position": "relative",
+        "margin": "4px 0",
+    },
+    "menu-title": {
+        "font-size": "19px",
+        "font-weight": "600",
+        "color": "#1C180A",
+        "text-transform": "uppercase",
+        "letter-spacing": "0.08em",
+        "padding": "0 6px",
+        "margin-bottom": "4px",
+    },
+    "icon": {
+        "font-size": "16px",
+        "color": "#161406",
+    },
+    "nav-link": {
+        "font-size": "18px",
+        "color": "#0A0F08",
+        "border-radius": "8px",
+        "padding": "8px 10px",
+        "margin-bottom": "1px",
+    },
+    "nav-link-selected": {
+        "background-color": "#B65112",
+        "color": "#FFFFFF",
+        "font-weight": "500",
+    },
+    "icon-selected": {
+        "color": "#35E1AB",
+    },
+}
 )
     # ── DIVIDER + SETTINGS ──
     
 
     # ── PROFILE + LOGOUT AT BOTTOM ──
+ # ── PROFILE + LOGOUT AT BOTTOM ──
+    # Replace the existing profile+logout block in app.py with this:
+
     st.markdown("<div style='flex:1'></div>", unsafe_allow_html=True)
     st.markdown("""
-    <hr style="border:none; border-top: 0.5px solid #E0E0D8; margin: 8px 10px 0;">
+    <hr style="border:none; border-top: 1px solid rgba(61,255,154,0.12); margin: 8px 10px 0;">
     """, unsafe_allow_html=True)
 
     username = st.session_state.get("username", "user")
     role = st.session_state.get("role", "viewer")
-    role_color = "#1D9E75" if role == "admin" else "#378ADD"
-    role_bg = "#E1F5EE" if role == "admin" else "#E6F1FB"
     ini = username[:2].upper()
 
+    # role badge class
+    badge_class = "admin" if role == "admin" else "viewer"
+
     st.markdown(f"""
-    <div style="display:flex; align-items:center; gap:10px;
-                padding: 12px 10px; border-radius:8px;">
-        <div style="width:30px; height:30px; border-radius:50%; background:{role_bg};
-                    color:{role_color}; font-size:11px; font-weight:500;
-                    display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-            {ini}
-        </div>
+    <div class="sidebar-profile" style="display:flex; align-items:center; gap:10px;">
+        <div class="sidebar-avatar">{ini}</div>
         <div style="flex:1;">
-            <div style="font-size:12px; font-weight:500; color:#1a1a1a;">{username}</div>
-            <div style="display:inline-flex; align-items:center; margin-top:2px;
-                        background:{role_bg}; color:{role_color};
-                        font-size:10px; font-weight:500; padding:1px 8px;
-                        border-radius:20px;">
-                {role.capitalize()}
-            </div>
+            <div class="sidebar-username">{username}</div>
+            <span class="role-badge {badge_class}">{role.capitalize()}</span>
         </div>
     </div>
     """, unsafe_allow_html=True)
-
 
     if st.button("Logout", use_container_width=True, key="logout_btn"):
         st.session_state.auth = False
@@ -243,9 +245,13 @@ if menu == "Dashboard":
             search_clicked = st.button("⌕", use_container_width=True)
 
     with sort_col:
+        choirs = sorted(
+            data["choir"].dropna().unique().tolist(),
+            key=natural_sort_key
+        )
         sort_options = (
             ["All students"]
-            + [f"Choir · {c}" for c in sorted(data["choir"].dropna().unique().tolist())]
+            + [f"Choir · {c}" for c in choirs]
             + ["Gender · Male", "Gender · Female"]
             + ["Status · Graduated", "Status · Not Graduated", "Status · Deceased"]
         )
@@ -328,7 +334,7 @@ if menu == "Dashboard":
             st.dataframe(results[display_cols], use_container_width=True, height=500)
             csv = results.to_csv(index=False).encode("utf-8")
             st.download_button(
-                "⬇ Download results", csv,
+                "Download results", csv,
                 "search_results.csv", "text/csv",
                 key="download_search_results"
             )
@@ -389,14 +395,18 @@ if menu == "Dashboard":
     </style>
     """, unsafe_allow_html=True)
 
+    # ── METRIC CARDS WITH ICONS ──
     col1, col2, col3, col4 = st.columns(4)
 
     with col1:
         active = "active" if st.session_state.dashboard_view == "all" else ""
         st.markdown(f"""
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
         <div class="metric-card {active}">
+            <div class="mc-icon teal"><i class="ti ti-users"></i></div>
             <div class="metric-card-label">Total students</div>
             <div class="metric-card-value">{total}</div>
+            <div class="metric-card-hint">across all choirs</div>
         </div>
         """, unsafe_allow_html=True)
         if st.button("View all", key="btn_all", use_container_width=True):
@@ -406,8 +416,10 @@ if menu == "Dashboard":
         active = "active" if st.session_state.dashboard_view == "graduated" else ""
         st.markdown(f"""
         <div class="metric-card {active}">
+            <div class="mc-icon amber"><i class="ti ti-school"></i></div>
             <div class="metric-card-label">Graduated</div>
             <div class="metric-card-value">{graduated}</div>
+            <div class="metric-card-hint">{round(graduated/total*100, 1) if total else 0}% rate</div>
         </div>
         """, unsafe_allow_html=True)
         if st.button("View graduated", key="btn_grad", use_container_width=True):
@@ -417,8 +429,10 @@ if menu == "Dashboard":
         active = "active" if st.session_state.dashboard_view == "not_graduated" else ""
         st.markdown(f"""
         <div class="metric-card {active}">
+            <div class="mc-icon blue"><i class="ti ti-clock-hour-4"></i></div>
             <div class="metric-card-label">Not graduated</div>
             <div class="metric-card-value">{not_graduated}</div>
+            <div class="metric-card-hint">pending follow-up</div>
         </div>
         """, unsafe_allow_html=True)
         if st.button("View pending", key="btn_not_grad", use_container_width=True):
@@ -428,8 +442,10 @@ if menu == "Dashboard":
         active = "active" if st.session_state.dashboard_view == "deceased" else ""
         st.markdown(f"""
         <div class="metric-card {active}">
+            <div class="mc-icon red"><i class="ti ti-heart-broken"></i></div>
             <div class="metric-card-label">Deceased</div>
             <div class="metric-card-value">{deceased}</div>
+            <div class="metric-card-hint">in archive</div>
         </div>
         """, unsafe_allow_html=True)
         if st.button("View deceased", key="btn_deceased", use_container_width=True):
@@ -445,7 +461,11 @@ if menu == "Dashboard":
             "choir",
             "gender",
             "status"
-        ]]
+        ]].sort_values(
+            "choir",
+            key=lambda col: col.map(natural_sort_key),
+            ignore_index=True
+        )
     # right after st.data_editor(filtered, ...)
         csv = filtered.to_csv(index=False).encode("utf-8")
         st.download_button(
@@ -640,30 +660,65 @@ if menu == "Dashboard":
             trend_grouped["Year"] = trend_grouped["Year"].astype(int).astype(str)
             max_year = trend_grouped["Year"].max()
 
-            import altair as alt
+            # ── GRADUATION TREND CHART ── (replace the color encoding block)
+
+        import altair as alt
+
+        trend = data[data["graduated"] == True].copy()
+        trend = trend.dropna(subset=["year_of_graduation"])
+
+        if not trend.empty:
+            trend_grouped = (
+                trend.groupby("year_of_graduation")
+                .size()
+                .reset_index(name="Graduates")
+                .sort_values("year_of_graduation")
+                .rename(columns={"year_of_graduation": "Year"})
+            )
+            trend_grouped["Year"] = trend_grouped["Year"].astype(int).astype(str)
+            max_year = trend_grouped["Year"].max()
+            second_year = sorted(trend_grouped["Year"].tolist())[-2] if len(trend_grouped) >= 2 else max_year
+            third_year  = sorted(trend_grouped["Year"].tolist())[-3] if len(trend_grouped) >= 3 else max_year
+
+            # Add a colour category column — no nested conditions needed
+            def bar_color_cat(year):
+                if year == max_year:
+                    return "latest"
+                elif year in (second_year, third_year):
+                    return "recent"
+                else:
+                    return "past"
+
+            trend_grouped["ColorCat"] = trend_grouped["Year"].apply(bar_color_cat)
+
+            color_scale = alt.Scale(
+                domain=["latest", "recent", "past"],
+                range=["#E8A020", "#1D9E75", "rgba(29,158,117,0.35)"]
+            )
+
             chart = alt.Chart(trend_grouped).mark_bar(
                 cornerRadiusTopLeft=4,
                 cornerRadiusTopRight=4,
             ).encode(
                 x=alt.X("Year:N", axis=alt.Axis(
-                    labelColor="#B4B2A9",
-                    tickColor="#E0E0D8",
-                    domainColor="#E0E0D8",
+                    labelColor="#B0A48E",
+                    tickColor="#E0D8CC",
+                    domainColor="#E0D8CC",
                     labelFontSize=11,
                     title=None
                 )),
                 y=alt.Y("Graduates:Q", axis=alt.Axis(
-                    labelColor="#B4B2A9",
-                    gridColor="#F1EFE8",
+                    labelColor="#B0A48E",
+                    gridColor="#EDE8DE",
                     domainOpacity=0,
                     tickOpacity=0,
                     labelFontSize=11,
                     title=None
                 )),
-                color=alt.condition(
-                    alt.datum.Year == max_year,
-                    alt.value("#1D9E75"),
-                    alt.value("#9FE1CB")
+                color=alt.Color(
+                    "ColorCat:N",
+                    scale=color_scale,
+                    legend=None
                 ),
                 tooltip=["Year", "Graduates"]
             ).properties(
