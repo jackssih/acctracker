@@ -59,7 +59,7 @@ def upload_choir_data(file):
         if file.name.endswith(".xlsx"):
             df = pd.read_excel(file)
         else:
-            df = pd.read_csv(file, encoding="utf-8", error_bad_lines=False)
+            df = pd.read_csv(file, encoding="utf-8", on_bad_lines="skip")
 
         # CLEAN COLUMN NAMES FIRST (VERY IMPORTANT)
         df.columns = df.columns.str.strip().str.lower()
