@@ -2,42 +2,66 @@ import streamlit as st
 import bcrypt
 import pandas as pd
 import os
-import shutil
 from pathlib import Path
 from database import connect_db
 from choir_logic import load_full_dataset
 
 
+# ── helpers ───────────────────────────────────────────────────────────────────
+
 def hash_password(plain: str) -> str:
     return bcrypt.hashpw(plain.encode(), bcrypt.gensalt()).decode()
 
 
+def get_db_path() -> Path:
+    """
+    Returns the path to choir.db regardless of environment.
+    Checks in order: data/choir.db → choir.db → /tmp/choir.db
+    """
+    candidates = [
+        Path("data/choir.db"),
+        Path("choir.db"),
+        Path("/tmp/choir.db"),
+    ]
+    for p in candidates:
+        if p.exists():
+            return p
+    return candidates[0]   # return first even if missing (safe fallback)
+
+
+def safe_db_size_kb() -> float:
+    """Return database file size in KB, or 0.0 if the file doesn't exist."""
+    try:
+        return os.path.getsize(get_db_path()) / 1024
+    except (FileNotFoundError, OSError):
+        return 0.0
+
+
+# ── main render ───────────────────────────────────────────────────────────────
+
 def render_settings():
 
-    st.markdown("**Settings**")
+    st.title("**Settings**")
     st.caption("System preferences and account management")
     st.markdown("---")
 
-    # ── STAT CARDS ──
+    # ── DB SIZE — computed once, used everywhere ──────────────────────────────
+    db_size = safe_db_size_kb()
+    db_path = get_db_path()
+
+    # ── STAT CARDS ────────────────────────────────────────────────────────────
     conn = connect_db()
-    total_students = pd.read_sql(
-        "SELECT COUNT(*) as c FROM choir_data", conn
-    ).iloc[0]["c"]
-    total_graduated = pd.read_sql(
-        "SELECT COUNT(*) as c FROM graduation_data", conn
-    ).iloc[0]["c"]
-    total_users = pd.read_sql(
-        "SELECT COUNT(*) as c FROM users", conn
-    ).iloc[0]["c"]
-    db_size = os.path.getsize("data/choir.db") / 1024
+    total_students  = pd.read_sql("SELECT COUNT(*) as c FROM choir_data",    conn).iloc[0]["c"]
+    total_graduated = pd.read_sql("SELECT COUNT(*) as c FROM graduation_data", conn).iloc[0]["c"]
+    total_users     = pd.read_sql("SELECT COUNT(*) as c FROM users",          conn).iloc[0]["c"]
     conn.close()
 
     c1, c2, c3, c4 = st.columns(4)
     for col, label, value, icon, bg, color in [
-        (c1, "Total students", int(total_students), "ti-users",       "#E1F5EE", "#1D9E75"),
-        (c2, "Graduates",      int(total_graduated),"ti-certificate", "#FAEEDA", "#EF9F27"),
-        (c3, "System users",   int(total_users),    "ti-shield",      "#E6F1FB", "#378ADD"),
-        (c4, "Database size",  f"{db_size:.1f} KB", "ti-database",    "#F3EEF8", "#8B5CF6"),
+        (c1, "Total students", int(total_students),  "ti-users",       "#E1F5EE", "#1D9E75"),
+        (c2, "Graduates",      int(total_graduated), "ti-certificate", "#FAEEDA", "#EF9F27"),
+        (c3, "System users",   int(total_users),     "ti-shield",      "#E6F1FB", "#378ADD"),
+        (c4, "Database size",  f"{db_size:.1f} KB",  "ti-database",    "#F3EEF8", "#8B5CF6"),
     ]:
         with col:
             st.markdown(f"""
@@ -57,15 +81,13 @@ def render_settings():
 
     st.markdown("---")
 
-    # ── TWO COLUMN LAYOUT ──
+    # ── TWO COLUMN LAYOUT ─────────────────────────────────────────────────────
     left_col, right_col = st.columns(2)
 
-    # ──────────────────────────────────────────
-    # LEFT COLUMN
-    # ──────────────────────────────────────────
+    # ── LEFT COLUMN ───────────────────────────────────────────────────────────
     with left_col:
 
-        # ── CHANGE PASSWORD ──
+        # ── CHANGE PASSWORD ──────────────────────────────────────────────────
         st.markdown("**Change password**")
         with st.form("change_password_form"):
             current_pw = st.text_input(
@@ -105,8 +127,7 @@ def render_settings():
                     conn = connect_db()
                     conn.execute(
                         "UPDATE users SET password_hash = ? WHERE username = ?",
-                        (hash_password(new_pw),
-                         st.session_state.get("username"))
+                        (hash_password(new_pw), st.session_state.get("username"))
                     )
                     conn.commit()
                     conn.close()
@@ -116,10 +137,7 @@ def render_settings():
 
         st.markdown("---")
 
-        
-        
-
-        # ── SYSTEM INFO ──
+        # ── SYSTEM INFO ──────────────────────────────────────────────────────
         st.markdown("**System info**")
         st.markdown(f"""
         <div style="background:#FFFFFF; border:0.5px solid #E0E0D8; border-radius:12px;
@@ -141,6 +159,11 @@ def render_settings():
             </div>
             <div style="display:flex; justify-content:space-between; padding:6px 0;
                         border-bottom:0.5px solid #F1EFE8;">
+                <span style="color:#888780;">DB path</span>
+                <span style="font-weight:500; font-size:11px; color:#888780;">{db_path}</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; padding:6px 0;
+                        border-bottom:0.5px solid #F1EFE8;">
                 <span style="color:#888780;">Logged in as</span>
                 <span style="font-weight:500;">{st.session_state.get('username', '—')}</span>
             </div>
@@ -153,12 +176,10 @@ def render_settings():
         </div>
         """, unsafe_allow_html=True)
 
-    # ──────────────────────────────────────────
-    # RIGHT COLUMN
-    # ──────────────────────────────────────────
+    # ── RIGHT COLUMN ──────────────────────────────────────────────────────────
     with right_col:
 
-        # ── EXPORT ALL DATA ──
+        # ── EXPORT ALL DATA ──────────────────────────────────────────────────
         st.markdown("**Export all data**")
         st.markdown("""
         <div style="background:#F7F8F6; border:0.5px solid #E0E0D8; border-radius:10px;
@@ -188,7 +209,6 @@ def render_settings():
                 key="export_all"
             )
 
-            # export by choir
             st.markdown("<div style='margin-top:8px'></div>", unsafe_allow_html=True)
             choirs = sorted(data["choir"].dropna().unique().tolist())
             selected_choir = st.selectbox(
@@ -198,9 +218,7 @@ def render_settings():
             )
             if selected_choir != "All choirs":
                 choir_data = data[data["choir"] == selected_choir]
-                csv_choir = choir_data[export_cols].to_csv(
-                    index=False
-                ).encode("utf-8")
+                csv_choir  = choir_data[export_cols].to_csv(index=False).encode("utf-8")
                 st.download_button(
                     f"Download {selected_choir}",
                     csv_choir,
@@ -212,7 +230,7 @@ def render_settings():
 
         st.markdown("---")
 
-        # ── BACKUP DATABASE ──
+        # ── BACKUP DATABASE ──────────────────────────────────────────────────
         st.markdown("**Backup database**")
         st.markdown("""
         <div style="background:#F7F8F6; border:0.5px solid #E0E0D8; border-radius:10px;
@@ -222,7 +240,6 @@ def render_settings():
         </div>
         """, unsafe_allow_html=True)
 
-        db_path = Path("data/choir.db")
         if db_path.exists():
             with open(db_path, "rb") as f:
                 db_bytes = f.read()
@@ -235,11 +252,14 @@ def render_settings():
                 key="backup_db"
             )
         else:
-            st.error("Database file not found")
+            st.warning(
+                "Database file not found at any expected path. "
+                "This is normal on first run — add some data first."
+            )
 
         st.markdown("---")
 
-        # ── RESET VIEWS ──
+        # ── RESET VIEWS ──────────────────────────────────────────────────────
         st.markdown("**Reset views**")
         st.markdown("""
         <div style="background:#F7F8F6; border:0.5px solid #E0E0D8; border-radius:10px;
@@ -260,7 +280,7 @@ def render_settings():
             """, unsafe_allow_html=True)
 
             confirm_reset = st.checkbox("I understand, reset everything")
-            reset_submit = st.form_submit_button(
+            reset_submit  = st.form_submit_button(
                 "Reset views", use_container_width=True
             )
 
