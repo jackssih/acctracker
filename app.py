@@ -21,13 +21,11 @@ def get_engine():
 
 engine = get_engine()
 
-# Read data
 def fetch_data():
     with engine.connect() as conn:
         result = conn.execute(text("SELECT * FROM your_table"))
         return result.fetchall()
 
-# Write data
 def insert_data(value1, value2):
     with engine.connect() as conn:
         conn.execute(
@@ -36,15 +34,16 @@ def insert_data(value1, value2):
         )
         conn.commit()
 
-        
 def natural_sort_key(s):
     return [int(t) if t.isdigit() else t.lower()
             for t in re.split(r'(\d+)', s)]
+
 def is_admin():
     return st.session_state.get("role") == "admin"
 
 def refresh_data():
     st.session_state.edited_df = load_full_dataset()
+
 create_tables()
 
 st.set_page_config(
@@ -53,17 +52,13 @@ st.set_page_config(
 )
 from choir_theme import inject_theme
 inject_theme()
-# LOGIN
+
 if not login():
     st.stop()
 
-# BAR NAVIGATION
 with st.sidebar:
-    # ── BRAND + LOGO ──
     logo_path = Path("logo one.jpg")
-    
-    
-    
+
     if logo_path.exists():
         img_b64 = base64.b64encode(logo_path.read_bytes()).decode()
         st.markdown(f"""
@@ -127,69 +122,62 @@ with st.sidebar:
         </div>
         """, unsafe_allow_html=True)
 
-    # ── NAV MENU ──
     menu = option_menu(
-    menu_title="Menu",
-    options=[
-    "Dashboard",
-    "Manage Data",
-    "Analytics",
-    "User Management",
-    "Settings",
-    ],
-    icons=[
-        "speedometer2",
-        "cloud-upload",
-        "bar-chart-line",
-        "people",
-        "gear",
-    ],
-    default_index=0,
-styles={
-    "container": {
-        "padding": "0 10px",
-        "background-color": "#F5F5F0",
-        "border-radius": "20px",
-        "transition": "all 0.3s ease",
-        "position": "relative",
-        "margin": "4px 0",
-    },
-    "menu-title": {
-        "font-size": "19px",
-        "font-weight": "600",
-        "color": "#1C180A",
-        "text-transform": "uppercase",
-        "letter-spacing": "0.08em",
-        "padding": "0 6px",
-        "margin-bottom": "4px",
-    },
-    "icon": {
-        "font-size": "16px",
-        "color": "#161406",
-    },
-    "nav-link": {
-        "font-size": "18px",
-        "color": "#0A0F08",
-        "border-radius": "8px",
-        "padding": "8px 10px",
-        "margin-bottom": "1px",
-    },
-    "nav-link-selected": {
-        "background-color": "#B65112",
-        "color": "#FFFFFF",
-        "font-weight": "500",
-    },
-    "icon-selected": {
-        "color": "#35E1AB",
-    },
-}
-)
-    # ── DIVIDER + SETTINGS ──
-    
-
-    # ── PROFILE + LOGOUT AT BOTTOM ──
- # ── PROFILE + LOGOUT AT BOTTOM ──
-    # Replace the existing profile+logout block in app.py with this:
+        menu_title="Menu",
+        options=[
+            "Dashboard",
+            "Manage Data",
+            "Analytics",
+            "User Management",
+            "Settings",
+        ],
+        icons=[
+            "speedometer2",
+            "cloud-upload",
+            "bar-chart-line",
+            "people",
+            "gear",
+        ],
+        default_index=0,
+        styles={
+            "container": {
+                "padding": "0 10px",
+                "background-color": "#F5F5F0",
+                "border-radius": "20px",
+                "transition": "all 0.3s ease",
+                "position": "relative",
+                "margin": "4px 0",
+            },
+            "menu-title": {
+                "font-size": "19px",
+                "font-weight": "600",
+                "color": "#1C180A",
+                "text-transform": "uppercase",
+                "letter-spacing": "0.08em",
+                "padding": "0 6px",
+                "margin-bottom": "4px",
+            },
+            "icon": {
+                "font-size": "16px",
+                "color": "#161406",
+            },
+            "nav-link": {
+                "font-size": "18px",
+                "color": "#0A0F08",
+                "border-radius": "8px",
+                "padding": "8px 10px",
+                "margin-bottom": "1px",
+            },
+            "nav-link-selected": {
+                "background-color": "#B65112",
+                "color": "#FFFFFF",
+                "font-weight": "500",
+            },
+            "icon-selected": {
+                "color": "#35E1AB",
+            },
+        }
+    )
 
     st.markdown("<div style='flex:1'></div>", unsafe_allow_html=True)
     st.markdown("""
@@ -199,8 +187,6 @@ styles={
     username = st.session_state.get("username", "user")
     role = st.session_state.get("role", "viewer")
     ini = username[:2].upper()
-
-    # role badge class
     badge_class = "admin" if role == "admin" else "viewer"
 
     st.markdown(f"""
@@ -216,30 +202,27 @@ styles={
     if st.button("Logout", use_container_width=True, key="logout_btn"):
         st.session_state.auth = False
         st.rerun()
+
 if "last_menu" not in st.session_state:
     st.session_state.last_menu = None
 
 if st.session_state.last_menu != menu:
-    refresh_data()   # refresh every time you change page
+    refresh_data()
     st.session_state.last_menu = menu
 
-
-# detect page switch
 if st.session_state.last_menu != menu:
     st.session_state.search_results = None
     st.session_state.last_menu = menu
-# ---------------- LOAD DATA FIRST ----------------
+
 if "edited_df" not in st.session_state:
     st.session_state.edited_df = load_full_dataset()
 
-
-# ---------------- INIT SESSION STATE ----------------
 if "view" not in st.session_state:
     st.session_state.view = "all"
 
 if "edited_df" not in st.session_state:
     st.session_state.edited_df = load_full_dataset()
-# ---------------- RESET SEARCH ON PAGE CHANGE ----------------
+
 if "search_menu_tracker" not in st.session_state:
     st.session_state.search_menu_tracker = menu
 
@@ -249,14 +232,13 @@ if st.session_state.search_menu_tracker != menu:
         if key in st.session_state:
             del st.session_state[key]
     st.rerun()
-# ---------------- GLOBAL SEARCH BAR ----------------
+
 # ---------------- SEARCH ONLY ON DASHBOARD ----------------
 if menu == "Dashboard":
     data = load_full_dataset()
     st.session_state.edited_df = data
 
-    # ── SEARCH + SORT ROW ──
-    space, search_col, sort_col = st.columns([2,1.5, 1])
+    space, search_col, sort_col = st.columns([2, 1.5, 1])
 
     with search_col:
         left, right = st.columns([6, 0.8])
@@ -285,10 +267,11 @@ if menu == "Dashboard":
             sort_options,
             key="dashboard_sort"
         )
+
     with space:
         st.title("**Dashboard**")
         st.caption("Track and edit all your choir data")
-    # ── SEARCH LOGIC ──
+
     if search_clicked:
         results = data.copy()
 
@@ -298,7 +281,6 @@ if menu == "Dashboard":
                 results["identification_no"].astype(str).str.contains(search_query, case=False)
             ]
 
-        # apply sort_by filter on top of search
         if sort_by != "All students":
             if sort_by.startswith("Choir · "):
                 choir_val = sort_by.replace("Choir · ", "")
@@ -321,7 +303,6 @@ if menu == "Dashboard":
             + (f" · {sort_by}" if sort_by != "All students" else "")
         )
 
-    # ── SHOW RESULTS ──
     if "global_results" not in st.session_state:
         st.session_state.global_results = None
 
@@ -368,7 +349,6 @@ if menu == "Dashboard":
 
     st.divider()
 
-
 # ---------------- DASHBOARD ----------------
 if "dashboard_view" not in st.session_state:
     st.session_state.dashboard_view = None
@@ -376,7 +356,6 @@ if "dashboard_view" not in st.session_state:
 if menu == "Dashboard":
     data = load_full_dataset()
     st.session_state.edited_df = data
-    
 
     data = st.session_state.edited_df.copy()
     total = data["identification_no"].nunique()
@@ -384,7 +363,6 @@ if menu == "Dashboard":
     not_graduated = total - graduated
     deceased = int((data["status"] == "deceased").sum()) if "status" in data else 0
 
-    # ── METRIC CARDS WITH BUTTONS INSIDE ──
     st.markdown("""
     <style>
     .metric-card {
@@ -420,7 +398,6 @@ if menu == "Dashboard":
     </style>
     """, unsafe_allow_html=True)
 
-    # ── METRIC CARDS WITH ICONS ──
     col1, col2, col3, col4 = st.columns(4)
 
     with col1:
@@ -478,7 +455,7 @@ if menu == "Dashboard":
 
     # ---------------- FILTER LOGIC ----------------
     filtered = None
-    
+
     if st.session_state.dashboard_view == "all":
         filtered = data[[
             'identification_no',
@@ -491,92 +468,62 @@ if menu == "Dashboard":
             key=lambda col: col.map(natural_sort_key),
             ignore_index=True
         )
-    # right after st.data_editor(filtered, ...)
         csv = filtered.to_csv(index=False).encode("utf-8")
         st.download_button(
-            "Download",
-            csv,
-            "students.csv",
-            "text/csv",
+            "Download", csv, "students.csv", "text/csv",
             key=f"download_{st.session_state.dashboard_view}"
         )
+
     elif st.session_state.dashboard_view == "graduated":
         filtered = data[data["graduated"] == True][[
-            "name",
-            "choir",
-            "gender",
-            "status",
-            "institute",
-            "course_name",
-            "year_of_graduation"
+            "name", "choir", "gender", "status",
+            "institute", "course_name", "year_of_graduation"
         ]]
         csv = filtered.to_csv(index=False).encode("utf-8")
         st.download_button(
-            "Download",
-            csv,
-            "students.csv",
-            "text/csv",
+            "Download", csv, "students.csv", "text/csv",
             key=f"download_{st.session_state.dashboard_view}"
         )
+
     elif st.session_state.dashboard_view == "not_graduated":
         filtered = data[data["graduated"] == False].copy()
-        # remove ID columns
         filtered = filtered.drop(columns=["identification_no", "id_grad"], errors="ignore")
-        display_cols = [
-            "name",
-            "choir",
-            "gender",
-            "status",
-            
-        ]
+        display_cols = ["name", "choir", "gender", "status"]
         csv = filtered.to_csv(index=False).encode("utf-8")
         st.download_button(
-            "Download",
-            csv,
-            "students.csv",
-            "text/csv",
+            "Download", csv, "students.csv", "text/csv",
             key=f"download_{st.session_state.dashboard_view}"
         )
-        # keep only existing ones
         display_cols = [c for c in display_cols if c in filtered.columns]
-
         filtered = filtered[display_cols]
         filtered["mark_graduated"] = False
         edited = st.data_editor(filtered, use_container_width=True)
-        
+
         for idx, row in edited.iterrows():
             if row.get("mark_graduated") == True:
-
                 st.warning(f"Enter graduation details for {row['name']}")
-
                 with st.form(f"grad_form_{idx}"):
-
                     institute = st.text_input("Institute", key=f"inst_{idx}")
                     course = st.text_input("Course", key=f"course_{idx}")
                     year = st.number_input("Year", min_value=2000, max_value=2100, key=f"year_{idx}")
-
                     submit = st.form_submit_button("Save Graduation")
-
                     if submit:
                         if not is_admin():
-                           st.error("You don't have permission to save changes.")
+                            st.error("You don't have permission to save changes.")
                         elif not institute or not course or not year:
                             st.error("All fields required")
                         else:
                             conn = connect_db()
                             conn.execute("""
-                                INSERT INTO graduation_data 
+                                INSERT INTO graduation_data
                                 (identification_no, institute, course_name, year_of_graduation)
                                 VALUES (?, ?, ?, ?)
                             """, (
                                 data.loc[idx, "identification_no"],
-                                institute,
-                                course,
-                                year
+                                institute, course, year
                             ))
                             conn.commit()
                             conn.close()
-
                             st.success("Graduation saved")
                             st.rerun()
 
@@ -584,21 +531,15 @@ if menu == "Dashboard":
         filtered = data[data["status"] == "deceased"].copy()
         csv = filtered.to_csv(index=False).encode("utf-8")
         st.download_button(
-            "Download",
-            csv,
-            "students.csv",
-            "text/csv",
+            "Download", csv, "students.csv", "text/csv",
             key=f"download_{st.session_state.dashboard_view}"
         )
-    # keep only required columns
         display_cols = ["name", "choir", "gender", "comment"]
-
         for col in display_cols:
             if col not in filtered.columns:
                 filtered[col] = ""
-
         filtered = filtered[display_cols]
-    
+
         edited_deceased = st.data_editor(
             filtered,
             use_container_width=True,
@@ -608,43 +549,34 @@ if menu == "Dashboard":
                 "comment": st.column_config.TextColumn("Comment")
             }
         )
-
-        # persist changes back to session state
         for idx, row in edited_deceased.iterrows():
             if "comment" in row.index:
                 st.session_state.edited_df.loc[idx, "comment"] = row["comment"]
+
     # ---------------- ONLY SHOW TABLE IF EXISTS ----------------
     if filtered is not None and st.session_state.dashboard_view != "not_graduated":
-     if filtered is not None and st.session_state.dashboard_view != "deceased":
-        display_df = filtered.drop(columns=["identification_no"], errors="ignore")
-    
-        edited_filtered = st.data_editor(
-            filtered,
-            use_container_width=True,
-            key=f"editor_{st.session_state.dashboard_view}",  # UNIQUE KEY FIX
-            disabled=not is_admin(),
-            column_config={
-                "status": st.column_config.SelectboxColumn(
-                    "Status",
-                    options=["alive", "deceased"]
-                )
-            }
-        )
-
-        # sync edits back
-        # Fix NaN in graduated column BEFORE saving
-        for idx in edited_filtered.index:
-            for col in edited_filtered.columns:
-                st.session_state.edited_df.loc[idx, col] = edited_filtered.loc[idx, col]
+        if filtered is not None and st.session_state.dashboard_view != "deceased":
+            display_df = filtered.drop(columns=["identification_no"], errors="ignore")
+            edited_filtered = st.data_editor(
+                filtered,
+                use_container_width=True,
+                key=f"editor_{st.session_state.dashboard_view}",
+                disabled=not is_admin(),
+                column_config={
+                    "status": st.column_config.SelectboxColumn(
+                        "Status",
+                        options=["alive", "deceased"]
+                    )
+                }
+            )
+            for idx in edited_filtered.index:
+                for col in edited_filtered.columns:
+                    st.session_state.edited_df.loc[idx, col] = edited_filtered.loc[idx, col]
 
     # ---------------- SAVE ----------------
-    
     if is_admin() and st.button(" Save Changes"):
-
         conn = connect_db()
-
         for _, row in st.session_state.edited_df.iterrows():
-
             conn.execute("""
                 UPDATE choir_data
                 SET status = ?, comment = ?
@@ -654,38 +586,20 @@ if menu == "Dashboard":
                 row.get("comment", ""),
                 row["identification_no"]
             ))
-
         conn.commit()
         conn.close()
-
         st.session_state.edited_df = load_full_dataset()
-
         st.session_state.dashboard_view = None
-
         st.success("Saved successfully")
         st.rerun()
-    st.divider()  # clean separator before page content when not searching
+
+    st.divider()
+
     # ── CHART + BY CHOIR ROW ──
     chart_col, choir_col = st.columns([2, 1])
 
     with chart_col:
         st.markdown("**Graduation trend**")
-
-        trend = data[data["graduated"] == True].copy()
-        trend = trend.dropna(subset=["year_of_graduation"])
-
-        if not trend.empty:
-            trend_grouped = (
-                trend.groupby("year_of_graduation")
-                .size()
-                .reset_index(name="Graduates")
-                .sort_values("year_of_graduation")
-                .rename(columns={"year_of_graduation": "Year"})
-            )
-            trend_grouped["Year"] = trend_grouped["Year"].astype(int).astype(str)
-            max_year = trend_grouped["Year"].max()
-
-            # ── GRADUATION TREND CHART ── (replace the color encoding block)
 
         import altair as alt
 
@@ -705,7 +619,6 @@ if menu == "Dashboard":
             second_year = sorted(trend_grouped["Year"].tolist())[-2] if len(trend_grouped) >= 2 else max_year
             third_year  = sorted(trend_grouped["Year"].tolist())[-3] if len(trend_grouped) >= 3 else max_year
 
-            # Add a colour category column — no nested conditions needed
             def bar_color_cat(year):
                 if year == max_year:
                     return "latest"
@@ -726,37 +639,25 @@ if menu == "Dashboard":
                 cornerRadiusTopRight=4,
             ).encode(
                 x=alt.X("Year:N", axis=alt.Axis(
-                    labelColor="#B0A48E",
-                    tickColor="#E0D8CC",
-                    domainColor="#E0D8CC",
-                    labelFontSize=11,
-                    title=None
+                    labelColor="#B0A48E", tickColor="#E0D8CC",
+                    domainColor="#E0D8CC", labelFontSize=11, title=None
                 )),
                 y=alt.Y("Graduates:Q", axis=alt.Axis(
-                    labelColor="#B0A48E",
-                    gridColor="#EDE8DE",
-                    domainOpacity=0,
-                    tickOpacity=0,
-                    labelFontSize=11,
-                    title=None
+                    labelColor="#B0A48E", gridColor="#EDE8DE",
+                    domainOpacity=0, tickOpacity=0,
+                    labelFontSize=11, title=None
                 )),
-                color=alt.Color(
-                    "ColorCat:N",
-                    scale=color_scale,
-                    legend=None
-                ),
+                color=alt.Color("ColorCat:N", scale=color_scale, legend=None),
                 tooltip=["Year", "Graduates"]
             ).properties(
-                height=180,
-                background="transparent"
-            ).configure_view(
-                strokeOpacity=0
-            )
+                height=180, background="transparent"
+            ).configure_view(strokeOpacity=0)
 
             st.altair_chart(chart, use_container_width=True)
         else:
             st.info("No graduation data yet.")
 
+    # ── BY CHOIR — same 3-tier color pattern as the graduation trend chart ──
     with choir_col:
         st.markdown("**By choir**")
 
@@ -769,10 +670,25 @@ if menu == "Dashboard":
         ).round(1)
         choir_stats = choir_stats.sort_values("pct", ascending=False).head(6)
 
+        # Top 3 pct values — drives 3-tier coloring to match the trend chart
+        sorted_pcts = sorted(choir_stats["pct"].tolist(), reverse=True)
+        top1_pct = sorted_pcts[0] if len(sorted_pcts) >= 1 else None
+        top2_pct = sorted_pcts[1] if len(sorted_pcts) >= 2 else None
+        top3_pct = sorted_pcts[2] if len(sorted_pcts) >= 3 else None
+
         for _, row in choir_stats.iterrows():
             pct = row["pct"]
-            bar_color = "#5DCAA5" if pct >= 60 else "#B4B2A9"
-            num_color = "#0F6E56" if pct >= 60 else "#888780"
+
+            if pct == top1_pct:
+                bar_color = "#E8A020"                 # amber  — top choir (matches "latest")
+                num_color = "#B65112"
+            elif pct in (top2_pct, top3_pct):
+                bar_color = "#1D9E75"                 # solid green — 2nd & 3rd (matches "recent")
+                num_color = "#0F6E56"
+            else:
+                bar_color = "rgba(29,158,117,0.35)"  # faded green — rest (matches "past")
+                num_color = "#888780"
+
             st.markdown(f"""
             <div style="margin-bottom:10px;">
                 <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
@@ -867,13 +783,11 @@ if menu == "Dashboard":
 
         csv_recent = recent_display.to_csv(index=False).encode("utf-8")
         st.download_button(
-            "Download recent graduates",
-            csv_recent,
-            "recent_graduates.csv",
-            "text/csv",
+            "Download recent graduates", csv_recent,
+            "recent_graduates.csv", "text/csv",
             key="download_recent"
         )
-                        
+
 # ---------------- UPLOAD ----------------
 elif menu == "Manage Data":
     if not is_admin():
@@ -891,7 +805,6 @@ elif menu == "Manage Data":
     st.caption("Upload, add and remove student records")
     st.markdown("---")
 
-    # ── ROW 1: TEMPLATES + UPLOAD ──
     tmpl_col, upload_col = st.columns(2)
 
     with tmpl_col:
@@ -908,12 +821,9 @@ elif menu == "Manage Data":
 
         choir_template = pd.DataFrame(columns=["name", "choir", "gender", "status"])
         st.download_button(
-            "Choir data template",
-            choir_template.to_csv(index=False),
-            "choir_template.csv",
-            "text/csv",
-            use_container_width=True,
-            key="dl_choir_template"
+            "Choir data template", choir_template.to_csv(index=False),
+            "choir_template.csv", "text/csv",
+            use_container_width=True, key="dl_choir_template"
         )
 
         grad_template = pd.DataFrame(columns=[
@@ -921,12 +831,9 @@ elif menu == "Manage Data":
             "course_name", "duration", "year_of_graduation"
         ])
         st.download_button(
-            "Graduation data template",
-            grad_template.to_csv(index=False),
-            "graduation_template.csv",
-            "text/csv",
-            use_container_width=True,
-            key="dl_grad_template"
+            "Graduation data template", grad_template.to_csv(index=False),
+            "graduation_template.csv", "text/csv",
+            use_container_width=True, key="dl_grad_template"
         )
 
         st.markdown("""
@@ -950,22 +857,14 @@ elif menu == "Manage Data":
         </div>
         """, unsafe_allow_html=True)
 
-        choir_file = st.file_uploader(
-            "Upload choir data",
-            type=["csv", "xlsx"],
-            key="choir_upload"
-        )
+        choir_file = st.file_uploader("Upload choir data", type=["csv", "xlsx"], key="choir_upload")
         if choir_file:
             upload_choir_data(choir_file)
             st.success("Choir data uploaded successfully")
             st.session_state.edited_df = load_full_dataset()
             st.rerun()
 
-        grad_file = st.file_uploader(
-            "Upload graduation data",
-            type=["csv", "xlsx"],
-            key="grad_upload"
-        )
+        grad_file = st.file_uploader("Upload graduation data", type=["csv", "xlsx"], key="grad_upload")
         if grad_file:
             upload_graduation_data(grad_file)
             st.session_state.edited_df = load_full_dataset()
@@ -974,7 +873,6 @@ elif menu == "Manage Data":
 
     st.markdown("<div style='margin-top:6px'></div>", unsafe_allow_html=True)
 
-    # ── ROW 2: ADD + DELETE ──
     add_col, del_col = st.columns(2)
 
     with add_col:
@@ -997,11 +895,7 @@ elif menu == "Manage Data":
                 gender = st.selectbox("Gender", ["M", "F"])
             with s_col:
                 status = st.selectbox("Status", ["alive", "deceased"])
-
-            submit = st.form_submit_button(
-                "Add student", use_container_width=True
-            )
-
+            submit = st.form_submit_button("Add student", use_container_width=True)
             if submit:
                 if not name or not choir:
                     st.error("Name and choir are required")
@@ -1032,11 +926,7 @@ elif menu == "Manage Data":
         """, unsafe_allow_html=True)
 
         with st.form("delete_student"):
-            name_to_delete = st.text_input(
-                "Student name",
-                placeholder="Enter exact name to remove..."
-            )
-
+            name_to_delete = st.text_input("Student name", placeholder="Enter exact name to remove...")
             st.markdown("""
             <div style="background:#FAEEDA; border:0.5px solid #EF9F27; border-radius:8px;
                         padding:8px 12px; font-size:11px; color:#854F0B;
@@ -1045,15 +935,8 @@ elif menu == "Manage Data":
                 This will permanently delete the student and all their graduation records.
             </div>
             """, unsafe_allow_html=True)
-
-            confirm = st.checkbox(
-                "I confirm I want to permanently remove this student"
-            )
-
-            delete_submit = st.form_submit_button(
-                "Remove student", use_container_width=True
-            )
-
+            confirm = st.checkbox("I confirm I want to permanently remove this student")
+            delete_submit = st.form_submit_button("Remove student", use_container_width=True)
             if delete_submit:
                 if not name_to_delete:
                     st.error("Please enter a student name")
@@ -1063,8 +946,7 @@ elif menu == "Manage Data":
                     conn = connect_db()
                     matches = pd.read_sql(
                         "SELECT identification_no FROM choir_data WHERE name = ?",
-                        conn,
-                        params=(name_to_delete,)
+                        conn, params=(name_to_delete,)
                     )
                     if matches.empty:
                         st.error(f"No student found with name '{name_to_delete}'")
@@ -1085,7 +967,6 @@ elif menu == "Manage Data":
                         st.session_state.deleted_name = name_to_delete
                         st.rerun()
 
-    # ── SUCCESS / DELETE TOASTS ──
     if st.session_state.get("deleted_count"):
         st.success(
             f"Removed {st.session_state.deleted_count} record(s) "
@@ -1108,7 +989,6 @@ elif menu == "Analytics":
     st.caption("Graduation insights across all choirs")
     st.markdown("---")
 
-    # ── DERIVED STATS ──
     total = data["identification_no"].nunique()
     graduated = data[data["graduated"] == True]["identification_no"].nunique()
     deceased = int((data["status"] == "deceased").sum())
@@ -1138,7 +1018,6 @@ elif menu == "Analytics":
     male = int((data["gender"] == "M").sum())
     female = int((data["gender"] == "F").sum())
 
-    # ── STAT CARDS ──
     c1, c2, c3 = st.columns(3)
 
     with c1:
@@ -1194,7 +1073,6 @@ elif menu == "Analytics":
 
     st.markdown("<div style='margin-top:10px'></div>", unsafe_allow_html=True)
 
-    # ── CHARTS ROW ──
     chart_col, gender_col = st.columns([2, 1])
 
     with chart_col:
@@ -1253,7 +1131,6 @@ elif menu == "Analytics":
 
     st.markdown("---")
 
-    # ── YEARLY TREND ──
     st.markdown("Graduation trend by year")
 
     if not grad_by_year.empty:
@@ -1285,7 +1162,6 @@ elif menu == "Analytics":
 
     st.markdown("---")
 
-        # ── CHOIR BREAKDOWN TABLE ──
     st.markdown("**Choir breakdown**")
 
     def rate_badge(rate):
@@ -1340,13 +1216,8 @@ elif menu == "Analytics":
         <table class="analytics-table">
             <thead>
                 <tr>
-                    <th>Choir</th>
-                    <th>Total</th>
-                    <th>Graduated</th>
-                    <th>Pending</th>
-                    <th>Deceased</th>
-                    <th>Rate</th>
-                    <th>Status</th>
+                    <th>Choir</th><th>Total</th><th>Graduated</th>
+                    <th>Pending</th><th>Deceased</th><th>Rate</th><th>Status</th>
                 </tr>
             </thead>
             <tbody>{rows_html}</tbody>
@@ -1356,14 +1227,14 @@ elif menu == "Analytics":
     st.markdown("<div style='margin-top:12px'></div>", unsafe_allow_html=True)
     csv_analytics = choir_stats.to_csv(index=False).encode("utf-8")
     st.download_button(
-        "Download analytics",
-        csv_analytics,
-        "choir_analytics.csv",
-        "text/csv",
+        "Download analytics", csv_analytics,
+        "choir_analytics.csv", "text/csv",
         key="download_analytics"
     )
-#-------user management----------------
+
+# ---------------- USER MANAGEMENT ----------------
 elif menu == "User Management":
     render_user_management()
+
 elif menu == "Settings":
     render_settings()
