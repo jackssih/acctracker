@@ -11,7 +11,32 @@ from settings import render_settings
 import base64
 from pathlib import Path
 import re
+from sqlalchemy import create_engine, text
 
+DB_URL = st.secrets["supabase"]["db_url"]
+
+@st.cache_resource
+def get_engine():
+    return create_engine(DB_URL)
+
+engine = get_engine()
+
+# Read data
+def fetch_data():
+    with engine.connect() as conn:
+        result = conn.execute(text("SELECT * FROM your_table"))
+        return result.fetchall()
+
+# Write data
+def insert_data(value1, value2):
+    with engine.connect() as conn:
+        conn.execute(
+            text("INSERT INTO your_table (col1, col2) VALUES (:v1, :v2)"),
+            {"v1": value1, "v2": value2}
+        )
+        conn.commit()
+
+        
 def natural_sort_key(s):
     return [int(t) if t.isdigit() else t.lower()
             for t in re.split(r'(\d+)', s)]
