@@ -4,3 +4,5 @@ bcrypt
 openpyxl
 streamlit-option-menu
 altair
+sqlalchemy
+psycopg2-binary
