@@ -2,8 +2,9 @@ import streamlit as st
 import bcrypt
 from database import connect_db
 import base64
+import tempfile
+import os
 from pathlib import Path
-import streamlit.components.v1 as components
 
 
 def verify_password(plain: str, hashed: str) -> bool:
@@ -34,6 +35,24 @@ def login():
     if st.session_state.get("auth"):
         return True
 
+    # ── CHECK QUERY PARAMS ──
+    params = st.query_params
+    if "login_user" in params and "login_pass" in params:
+        username_input = params["login_user"]
+        password_input = params["login_pass"]
+        st.query_params.clear()  # wipe credentials from URL immediately
+
+        user = get_user(username_input)
+        if user and verify_password(password_input, user["password_hash"]):
+            st.session_state.auth = True
+            st.session_state.username = user["username"]
+            st.session_state.role = user["role"]
+            st.session_state.login_error = False
+            st.rerun()
+        else:
+            st.session_state.login_error = True
+            st.rerun()
+
     # ── SLIDESHOW IMAGE FILES ──
     slideshow_files = [
         Path("slide1.jpg"),
@@ -47,13 +66,12 @@ def login():
     n = len(slide_uris)
 
     # ── BUILD SLIDESHOW CSS ──
-    # Each slide: hold 3s, fade 1s → total per slide = 4s → full cycle = n × 4s
-    HOLD   = 3      # seconds visible
-    FADE   = 1      # seconds crossfade
-    PERIOD = HOLD + FADE          # per-slide period (4s)
-    TOTAL  = PERIOD * n           # full cycle duration
+    HOLD   = 3
+    FADE   = 1
+    PERIOD = HOLD + FADE
+    TOTAL  = PERIOD * n if n > 0 else 1
 
-    slides_css   = ""
+    slides_css     = ""
     slideshow_html = ""
 
     if n > 0:
@@ -61,17 +79,10 @@ def login():
         div_parts = []
 
         for i, uri in enumerate(slide_uris):
-            # Each slide animates over the full TOTAL duration but is only
-            # visible during its own window [i*PERIOD, i*PERIOD + HOLD+FADE].
-            # We express everything as percentages of TOTAL.
-
-            start      = (i * PERIOD) / TOTAL * 100          # fade-in begins
-            peak_start = (i * PERIOD + FADE) / TOTAL * 100   # fully visible
-            peak_end   = ((i + 1) * PERIOD - FADE) / TOTAL * 100  # start fade-out
-            end        = ((i + 1) * PERIOD) / TOTAL * 100    # fully gone
-
-            # Clamp end to 100 for the last slide so it loops cleanly
-            end = min(end, 100)
+            start      = (i * PERIOD) / TOTAL * 100
+            peak_start = (i * PERIOD + FADE) / TOTAL * 100
+            peak_end   = ((i + 1) * PERIOD - FADE) / TOTAL * 100
+            end        = min(((i + 1) * PERIOD) / TOTAL * 100, 100)
 
             kf = f"""@keyframes kf{i} {{
   0%            {{ opacity: 0; }}
@@ -81,8 +92,6 @@ def login():
   {end:.3f}%    {{ opacity: 0; }}
   100%          {{ opacity: 0; }}
 }}"""
-            # Slide 0 starts immediately (no delay),
-            # subsequent slides are delayed by i × PERIOD seconds.
             css_parts.append(kf)
             css_parts.append(f"""
 .slide-bg:nth-child({i + 1}) {{
@@ -112,42 +121,22 @@ def login():
         width: 100vw !important; height: 100vh !important;
         border: none !important; z-index: 9999 !important;
     }
-    [data-testid="stForm"] {
-        position: fixed !important; opacity: 0 !important;
-        pointer-events: none !important;
-        top: -9999px !important; left: -9999px !important;
-        width: 1px !important; height: 1px !important;
-        overflow: hidden !important;
-    }
     </style>
     """, unsafe_allow_html=True)
 
-    # ── HIDDEN STREAMLIT FORM (real auth) ──
     show_error = st.session_state.get("login_error", False)
-
-    with st.form("real_login_form", clear_on_submit=False):
-        username_input = st.text_input("Username", key="hidden_username")
-        password_input = st.text_input("Password", type="password", key="hidden_password")
-        submitted = st.form_submit_button("Submit")
-
-    if submitted:
-        user = get_user(username_input)
-        if user and verify_password(password_input, user["password_hash"]):
-            st.session_state.auth = True
-            st.session_state.username = user["username"]
-            st.session_state.role = user["role"]
-            st.session_state.login_error = False
-            st.rerun()
-        else:
-            st.session_state.login_error = True
-            st.rerun()
-
     error_display = "flex" if show_error else "none"
 
     dot_html = "".join(
         f'<div class="slide-dot{"  active" if i == 0 else ""}" data-i="{i}"></div>'
         for i in range(n)
     )
+
+    # ── BUILD PARENT URL FOR JS (so the iframe can redirect the parent) ──
+    # We pass the current app URL into the HTML so JS can append query params
+    # without needing window.parent access (which st.iframe blocks too).
+    # We use a placeholder that JS replaces at runtime using document.referrer
+    # or a fallback to window.parent.location — st.iframe allows same-origin nav.
 
     html_content = f"""<!DOCTYPE html>
 <html>
@@ -171,70 +160,49 @@ def login():
   *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
   html, body {{ width: 100%; height: 100%; font-family: 'DM Sans', sans-serif; }}
 
-  /* ── SLIDESHOW ── */
-  .bg-stage {{
-    position: fixed; inset: 0; z-index: 0;
-    background: #0d1f18;
-  }}
+  .bg-stage {{ position: fixed; inset: 0; z-index: 0; background: #0d1f18; }}
   .slide-bg {{
     position: absolute; inset: 0;
-    background-size: cover;
-    background-position: center;
-    opacity: 0;
+    background-size: cover; background-position: center; opacity: 0;
   }}
 
   {slides_css}
 
   .bg-overlay {{
     position: fixed; inset: 0; z-index: 1;
-    background: linear-gradient(
-      135deg,
-      rgba(8,18,12,0.65) 0%,
-      rgba(10,30,18,0.48) 50%,
-      rgba(15,12,8,0.65) 100%
-    );
+    background: linear-gradient(135deg, rgba(8,18,12,0.65) 0%, rgba(10,30,18,0.48) 50%, rgba(15,12,8,0.65) 100%);
   }}
 
-  /* ── DOT INDICATORS ── */
   .slide-dots {{
     position: fixed; bottom: 20px; left: 50%;
-    transform: translateX(-50%);
-    z-index: 10; display: flex; gap: 8px;
+    transform: translateX(-50%); z-index: 10; display: flex; gap: 8px;
   }}
   .slide-dot {{
     width: 6px; height: 6px; border-radius: 50%;
-    background: rgba(255,255,255,0.3);
-    transition: background 0.4s, transform 0.4s;
+    background: rgba(255,255,255,0.3); transition: background 0.4s, transform 0.4s;
   }}
   .slide-dot.active {{
-    background: var(--orange-bright);
-    transform: scale(1.5);
+    background: var(--orange-bright); transform: scale(1.5);
     box-shadow: 0 0 8px rgba(255,140,66,0.8);
   }}
 
-  /* ── CARD LAYOUT ── */
   .page {{
-    position: relative; z-index: 2;
-    min-height: 100vh;
-    display: flex; align-items: center; justify-content: center;
-    padding: 2rem;
+    position: relative; z-index: 2; min-height: 100vh;
+    display: flex; align-items: center; justify-content: center; padding: 2rem;
   }}
 
   .glass-panel {{
     width: 100%; max-width: 420px;
     background: var(--black-panel);
-    backdrop-filter: blur(28px);
-    -webkit-backdrop-filter: blur(28px);
+    backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px);
     border-radius: 22px; overflow: hidden;
     border-top: 2px solid var(--orange-bright);
     border-left: 1px solid var(--border-green);
     border-right: 1px solid rgba(255,255,255,0.08);
     border-bottom: 1px solid rgba(255,255,255,0.06);
     box-shadow:
-      0 0 0 1px rgba(255,140,66,0.12),
-      0 12px 60px rgba(0,0,0,0.55),
-      inset 0 1px 0 rgba(255,140,66,0.18),
-      inset 1px 0 0 rgba(61,255,154,0.12);
+      0 0 0 1px rgba(255,140,66,0.12), 0 12px 60px rgba(0,0,0,0.55),
+      inset 0 1px 0 rgba(255,140,66,0.18), inset 1px 0 0 rgba(61,255,154,0.12);
   }}
 
   .slide-track {{
@@ -242,19 +210,16 @@ def login():
     transition: transform 0.58s cubic-bezier(0.77, 0, 0.175, 1);
   }}
   .slide-track.show-form {{ transform: translateX(-50%); }}
-
   .slide-panel {{ width: 50%; flex-shrink: 0; padding: 42px 36px 38px; }}
 
   .accent-bar {{ display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }}
   .accent-dot {{
     width: 10px; height: 10px; border-radius: 50%;
-    background: var(--orange-bright);
-    box-shadow: 0 0 10px rgba(255,140,66,0.7); flex-shrink: 0;
+    background: var(--orange-bright); box-shadow: 0 0 10px rgba(255,140,66,0.7); flex-shrink: 0;
   }}
   .accent-line {{
     flex: 1; height: 1px;
-    background: linear-gradient(90deg, var(--orange-bright), transparent);
-    opacity: 0.55;
+    background: linear-gradient(90deg, var(--orange-bright), transparent); opacity: 0.55;
   }}
 
   .system-name {{
@@ -269,8 +234,7 @@ def login():
   }}
   .divider {{
     border: none; height: 1px;
-    background: linear-gradient(90deg, var(--border-orange), transparent 80%);
-    margin-bottom: 22px;
+    background: linear-gradient(90deg, var(--border-orange), transparent 80%); margin-bottom: 22px;
   }}
   .welcome-body {{
     font-size: 13.5px; color: var(--text-muted); line-height: 1.78; margin-bottom: 32px;
@@ -365,7 +329,7 @@ def login():
       <div class="slide-panel">
         <div class="accent-bar"><div class="accent-dot"></div><div class="accent-line"></div></div>
         <div class="system-name">African Children's<br>Choir Archives</div>
-        <div class="system-sub">Data Tracker &nbsp;·&nbsp; v1.0</div>
+        <div class="system-sub">Data Tracker &nbsp;&middot;&nbsp; v1.0</div>
         <div class="divider"></div>
         <div class="welcome-body">
           A living record of the <strong>children, choirs, and stories</strong>
@@ -403,7 +367,7 @@ def login():
 </div>
 
 <script>
-  // ── CARD NAV ──
+  // ── CARD NAV — pure in-page JS, no parent access needed ──
   function goToForm() {{
     document.getElementById('track').classList.add('show-form');
     setTimeout(() => document.getElementById('ui_username').focus(), 600);
@@ -412,33 +376,27 @@ def login():
     document.getElementById('track').classList.remove('show-form');
   }}
 
-  // ── AUTH ──
+  // ── AUTH: redirect parent via window.parent.location ──
   function handleLogin() {{
     const user = document.getElementById('ui_username').value.trim();
     const pass = document.getElementById('ui_password').value;
     if (!user || !pass) return;
+
     const btn = document.getElementById('signInBtn');
-    btn.textContent = 'Signing in…';
+    btn.textContent = 'Signing in\u2026';
     btn.disabled = true;
 
-    const parentDoc = window.parent.document;
-    const allInputs = parentDoc.querySelectorAll('input');
-    let uField = null, pField = null;
-    allInputs.forEach(inp => {{
-      if (inp.type === 'password') pField = inp;
-      else if (inp.type === 'text' && !uField) uField = inp;
-    }});
-    if (uField && pField) {{
-      const setter = Object.getOwnPropertyDescriptor(
-        window.parent.HTMLInputElement.prototype, 'value').set;
-      setter.call(uField, user);
-      uField.dispatchEvent(new Event('input', {{ bubbles: true }}));
-      setter.call(pField, pass);
-      pField.dispatchEvent(new Event('input', {{ bubbles: true }}));
-      setTimeout(() => {{
-        const sub = parentDoc.querySelector('[data-testid="stFormSubmitButton"] button');
-        if (sub) sub.click();
-      }}, 150);
+    try {{
+      const parentUrl = new URL(window.parent.location.href);
+      parentUrl.searchParams.set('login_user', user);
+      parentUrl.searchParams.set('login_pass', pass);
+      window.parent.location.href = parentUrl.toString();
+    }} catch(e) {{
+      const base = document.referrer || window.location.href;
+      const url = new URL(base);
+      url.searchParams.set('login_user', user);
+      url.searchParams.set('login_pass', pass);
+      window.location.href = url.toString();
     }}
   }}
 
@@ -449,20 +407,19 @@ def login():
     if (e.key === 'Enter') document.getElementById('ui_password').focus();
   }});
 
+  // Auto-show login panel if last attempt errored
   if ('{error_display}' === 'flex') {{
     document.getElementById('track').classList.add('show-form');
   }}
 
   // ── DOT SYNC ──
-  // Mirrors the CSS animation: each slide = {PERIOD}s, total = {TOTAL}s
   const N      = {n};
-  const PERIOD = {PERIOD * 1000};   // ms
-  const TOTAL  = {TOTAL * 1000};    // ms
+  const PERIOD = {PERIOD * 1000};
+  const TOTAL  = {TOTAL * 1000};
 
   if (N > 1) {{
-    const dots   = document.querySelectorAll('.slide-dot');
-    const start  = performance.now();
-
+    const dots  = document.querySelectorAll('.slide-dot');
+    const start = performance.now();
     function syncDots(now) {{
       const elapsed = (now - start) % TOTAL;
       const active  = Math.floor(elapsed / PERIOD);
@@ -475,5 +432,22 @@ def login():
 </body>
 </html>"""
 
-    components.html(html_content, height=800, scrolling=False)
+    # ── WRITE TO TEMP FILE & SERVE VIA st.iframe ──
+    # st.html() sandboxes JS completely — buttons, navigation, all broken.
+    # st.iframe() serves a real file URL with full JS execution enabled.
+    tmp = tempfile.NamedTemporaryFile(
+        mode="w", suffix=".html", delete=False, encoding="utf-8"
+    )
+    tmp.write(html_content)
+    tmp.flush()
+    tmp.close()
+
+    st.iframe(tmp.name, height=800)
+
+    # Clean up temp file after serving
+    try:
+        os.unlink(tmp.name)
+    except Exception:
+        pass
+
     return False
